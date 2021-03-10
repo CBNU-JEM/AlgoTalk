@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         TabLayoutMediator(tabLayout, viewPager2) { tab, position ->
             tab.text = tabLayoutTextArray[position]
-            tab.view.setBackgroundColor(tabLayoutColorArray[position])
+            //tab.view.setBackgroundColor(tabLayoutColorArray[position])
             //tab.setIcon(tabLayoutIconArray[position])
         }.attach()
     }
