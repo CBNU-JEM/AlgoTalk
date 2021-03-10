@@ -2,12 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="55dp"></com.google.android.material.tabs.TabLayout>
+        android:layout_height="55dp"
+        app:tabTextColor="@color/black"
+        app:tabIndicatorColor="@color/black"
+        app:tabBackground="@drawable/tab_background"/>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager2"
