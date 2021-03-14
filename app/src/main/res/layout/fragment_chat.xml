@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_green"
-    tools:context=".ChattingFragment">
+    tools:context=".ChatFragment">
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/chattingScrollView"
+        android:id="@+id/chatScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="60dp"
@@ -18,7 +18,7 @@
         app:layout_constraintRight_toRightOf="parent">
 
         <LinearLayout
-            android:id="@+id/chatting_layout"
+            android:id="@+id/chat_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
