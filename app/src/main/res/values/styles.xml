@@ -3,6 +3,6 @@
     </style>
 
     <style name="IntroTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/algotalk_splash</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
 </resources>
