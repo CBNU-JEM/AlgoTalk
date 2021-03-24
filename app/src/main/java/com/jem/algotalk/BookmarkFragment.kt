@@ -51,7 +51,11 @@ class BookmarkFragment : Fragment() {
 
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
-        readBookmark(view)
+        val bookmark: MutableList<Bookmark> = readBookmark(view)
+        for (i in 0 until bookmark.size){
+            val date = Date(System.currentTimeMillis())
+            showTextView(bookmark[i].content, date.toString(), view)
+        }
 
         return view
     }
@@ -125,7 +129,7 @@ class BookmarkFragment : Fragment() {
             Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
     }
 
-    fun readBookmark(view: View){
+    fun readBookmark(view: View): MutableList<Bookmark>{
         //디비헬퍼, 디비 선언
         dbHelper = FeedReaderDbHelper(this.requireContext())
         // Gets the data repository in write mode
@@ -164,12 +168,19 @@ class BookmarkFragment : Fragment() {
             null               // The sort order
         )
 
-        while(cursor.moveToNext()){
-            Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
-            val date = Date(System.currentTimeMillis())
-            showTextView(cursor.getString(cursor.getColumnIndex("content")), date.toString(), view)
-            //System.out.println("content : "+cursor.getString(cursor.getColumnIndex("content")));
-        }
+        val bookmarklist :MutableList<Bookmark> = ArrayList()
+
+        if(cursor.moveToFirst()){
+            do {
+                Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
+                val bookmark = Bookmark()
+                bookmark.content = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT))
+                bookmarklist.add(bookmark)
+            }while (cursor.moveToNext())
+        }else
+            Toast.makeText(context,"There is no data.",Toast.LENGTH_LONG).show()
+
+        return bookmarklist
     }
 
     fun deleteBookmark(content: String){

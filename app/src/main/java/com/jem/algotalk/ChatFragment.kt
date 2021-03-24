@@ -144,6 +144,11 @@ class ChatFragment : Fragment() {
 
         Log.i("sangeun", "메세지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+        val bookmark: MutableList<Bookmark> = readBookmark(view)
+        for (i in 0 until bookmark.size){
+            if(bookmark[i].content == message)
+                bookmarkbutton?.isChecked=true
+        }
         bookmarkbutton?.setOnClickListener { view ->
             if (bookmarkbutton.isChecked)
                 insertBookmark(message)
@@ -204,7 +209,7 @@ class ChatFragment : Fragment() {
             Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
     }
 
-    fun readBookmark(view: View){
+    fun readBookmark(view: View): MutableList<Bookmark>{
         //디비헬퍼, 디비 선언
         dbHelper = FeedReaderDbHelper(this.requireContext())
         // Gets the data repository in write mode
@@ -243,12 +248,19 @@ class ChatFragment : Fragment() {
             null               // The sort order
         )
 
-        while(cursor.moveToNext()){
-            Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
-            val date = Date(System.currentTimeMillis())
-            showTextView(cursor.getString(cursor.getColumnIndex("content")), date.toString(), view)
-            //System.out.println("content : "+cursor.getString(cursor.getColumnIndex("content")));
-        }
+        val bookmarklist :MutableList<Bookmark> = ArrayList()
+
+        if(cursor.moveToFirst()){
+            do {
+                Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
+                val bookmark = Bookmark()
+                bookmark.content = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT))
+                bookmarklist.add(bookmark)
+            }while (cursor.moveToNext())
+        }else
+            Toast.makeText(context,"There is no data.",Toast.LENGTH_LONG).show()
+
+        return bookmarklist
     }
 
     fun deleteBookmark(content: String){
@@ -268,5 +280,10 @@ class ChatFragment : Fragment() {
             Toast.makeText(context,"Failed",Toast.LENGTH_LONG).show()
         else
             Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
     }
 }
