@@ -110,7 +110,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 bookmarklist.add(bookmark)
             }while (cursor.moveToNext())
         }
-            //Toast.makeText(context,"There is no data.", Toast.LENGTH_LONG).show()
+        //Toast.makeText(context,"There is no data.", Toast.LENGTH_LONG).show()
 
         return bookmarklist
     }
