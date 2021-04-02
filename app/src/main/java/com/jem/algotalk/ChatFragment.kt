@@ -47,7 +47,6 @@ class ChatFragment : Fragment() {
 
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper : FeedReaderDbHelper
-    private lateinit var database : SQLiteDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,11 +68,18 @@ class ChatFragment : Fragment() {
         sendButton.setOnClickListener {
             sendMessage(view)
         }
+
+        Log.i("sangeun", "채팅 뷰 create")
         return view
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+    }
+
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
     }
 
     fun sendMessage(view:View) {
@@ -141,19 +147,20 @@ class ChatFragment : Fragment() {
         messageTextView?.setText(message)
         frameLayout?.requestFocus()
         editText.requestFocus()
+        dbHelper = FeedReaderDbHelper(requireContext())
 
         Log.i("sangeun", "메세지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-        val bookmark: MutableList<Bookmark> = readBookmark(view)
+        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
         for (i in 0 until bookmark.size){
             if(bookmark[i].content == message)
                 bookmarkbutton?.isChecked=true
         }
         bookmarkbutton?.setOnClickListener { view ->
             if (bookmarkbutton.isChecked)
-                insertBookmark(message)
+                dbHelper.insertBookmark(message)
             else
-                deleteBookmark(message)
+                dbHelper.deleteBookmark(message)
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
@@ -187,103 +194,5 @@ class ChatFragment : Fragment() {
     fun getBotLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
-    }
-
-    fun insertBookmark(content: String){
-        //디비헬퍼, 디비 선언
-        dbHelper = FeedReaderDbHelper(this.requireContext())
-        // Gets the data repository in write mode
-        database = dbHelper.writableDatabase
-
-        // Create a new map of values, where column names are the keys
-        val values = ContentValues().apply {
-            put(FeedReaderContract.FeedEntry.COLUMN_CONTENT, content)
-        }
-
-        // Insert the new row, returning the primary key value of the new row
-        val newRowId = database?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
-
-        if(newRowId == (-1).toLong())
-            Toast.makeText(context,"Failed",Toast.LENGTH_LONG).show()
-        else
-            Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
-    }
-
-    fun readBookmark(view: View): MutableList<Bookmark>{
-        //디비헬퍼, 디비 선언
-        dbHelper = FeedReaderDbHelper(this.requireContext())
-        // Gets the data repository in write mode
-        database = dbHelper.readableDatabase
-
-//        if(deletedRows == (-1))
-//            Toast.makeText(context,"Failed",Toast.LENGTH_LONG).show()
-//        else
-//            Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
-
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
-        val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_CONTENT)
-
-//        // Filter results WHERE "title" = 'My Title'
-//        val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} = ?"
-//        val selectionArgs = arrayOf("My Title")
-//
-//        val cursor = database.query(
-//            FeedEntry.TABLE_NAME,   // The table to query
-//            projection,             // The array of columns to return (pass null to get all)
-//            selection,              // The columns for the WHERE clause
-//            selectionArgs,          // The values for the WHERE clause
-//            null,                   // don't group the rows
-//            null,                   // don't filter by row groups
-//            sortOrder               // The sort order
-//        )
-
-        val cursor = database.query(
-            FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
-            projection,             // The array of columns to return (pass null to get all)
-            null,              // The columns for the WHERE clause
-            null,          // The values for the WHERE clause
-            null,                   // don't group the rows
-            null,                   // don't filter by row groups
-            null               // The sort order
-        )
-
-        val bookmarklist :MutableList<Bookmark> = ArrayList()
-
-        if(cursor.moveToFirst()){
-            do {
-                Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
-                val bookmark = Bookmark()
-                bookmark.content = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT))
-                bookmarklist.add(bookmark)
-            }while (cursor.moveToNext())
-        }else
-            Toast.makeText(context,"There is no data.",Toast.LENGTH_LONG).show()
-
-        return bookmarklist
-    }
-
-    fun deleteBookmark(content: String){
-        //디비헬퍼, 디비 선언
-        dbHelper = FeedReaderDbHelper(this.requireContext())
-        // Gets the data repository in write mode
-        database = dbHelper.writableDatabase
-
-        // Define 'where' part of query.
-        val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} LIKE ?"
-        // Specify arguments in placeholder order.
-        val selectionArgs = arrayOf(content)
-        // Issue SQL statement.
-        val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
-
-        if(deletedRows == (-1))
-            Toast.makeText(context,"Failed",Toast.LENGTH_LONG).show()
-        else
-            Toast.makeText(context,"Success",Toast.LENGTH_LONG).show()
-    }
-
-    override fun onDestroy() {
-        dbHelper.close()
-        super.onDestroy()
     }
 }
