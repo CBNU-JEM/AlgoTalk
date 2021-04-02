@@ -14,6 +14,7 @@ import android.widget.*
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -23,6 +24,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -86,20 +88,21 @@ class ChatFragment : Fragment() {
         val msg:String = editText.text.toString().trim()
         val date = Date(System.currentTimeMillis())
 
+        //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://172.20.10.3:5005/webhooks/rest/")
+            .baseUrl("http://192.168.0.102:5005/webhooks/rest/") //로컬호스트말고 컴퓨터에 할당된 ip를 입력해야함. server ip
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val userMessage = UserMessage()
         if(msg.trim().isEmpty())
-            Toast.makeText(getActivity(),"Please enter your query",Toast.LENGTH_SHORT).show()
+            Toast.makeText(getActivity(), "Please enter your query", Toast.LENGTH_SHORT).show()
         else {
-            Log.e("Msg","msssage: $msg")
+            Log.e("Msg", "msssage: $msg")
             editText.setText("")
-            userMessage.UserMessage("User",msg)
-            showTextView(msg,USER,date.toString(), view)
+            userMessage.UserMessage("User", msg)
+            showTextView(msg, USER, date.toString(), view)
 
         }
         val messageSender = retrofit.create(MessageSender::class.java)
@@ -107,35 +110,51 @@ class ChatFragment : Fragment() {
             messageSender.sendMessage(userMessage)
 
         response.enqueue(object : Callback<List<BotResponse>> {
-            override fun onResponse(call: Call<List<BotResponse>>, response: Response<List<BotResponse>>) {
+            override fun onResponse(
+                call: Call<List<BotResponse>>,
+                response: Response<List<BotResponse>>
+            ) {
                 if (response.body() == null || response.body()!!.size == 0) {
                     val botMessage = "Sorry didn't understand"
-                    showTextView(botMessage,BOT,date.toString(), view)
+                    showTextView(botMessage, BOT, date.toString(), view)
                 } else {
-                    val botResponse = response.body()!![0]
-                    showTextView(botResponse.text,BOT,date.toString(), view)
-                    if(botResponse.buttons != null) {
-                        Log.e("Button c", "${botResponse.buttons.size}")
+                    response.body()!!.forEach { botResponse ->
+
+                        Log.e("text c", "${botResponse.text}")
+                        if (botResponse.text != null) {
+                            showTextView(botResponse.text, BOT, date.toString(), view)
+                        }
+
+                        Log.e("image c", "${botResponse.image}")
+                        if (botResponse.image != null) {
+                            showImageView(botResponse.image, BOT, date.toString(), view)
+                        }
+
+                        if (botResponse.buttons != null) {
+                            Log.e("Button c", "${botResponse.buttons.size}")
+                        }
                     }
                 }
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
                 val botMessage = "Check your network connection"
-                showTextView(botMessage,BOT,date.toString(), view)
+                showTextView(botMessage, BOT, date.toString(), view)
                 t.printStackTrace()
                 Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    fun showTextView(message: String, type: Int, date: String, view:View) {
+    fun showTextView(message: String, type: Int, date: String, view: View) {
         var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         when(type){
-            USER -> { frameLayout = getUserLayout()
+            USER -> {
+                frameLayout = getUserLayout()
             }
-            BOT ->{frameLayout = getBotLayout()
+            BOT -> {
+                frameLayout = getBotLayout()
             }
             else->{
                 frameLayout = getBotLayout()
@@ -186,6 +205,53 @@ class ChatFragment : Fragment() {
         timeTextView?.setText(time.toString())
     }
 
+
+
+    fun showImageView(message: String, type: Int, date: String, view: View) {
+        var frameLayout: FrameLayout? = null
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        when(type){
+            USER -> {
+                frameLayout = getUserLayout()
+            }
+            BOT -> {
+                frameLayout = getBotLayout("image")
+            }
+            else->{
+                frameLayout = getBotLayout("image")
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        val messageImageView = frameLayout?.findViewById<ImageView>(R.id.chat_image_message)
+
+        Glide.with(this).load(message).into(messageImageView!!);
+
+        frameLayout?.requestFocus()
+        editText.requestFocus()
+        val currentDateTime = Date(System.currentTimeMillis())
+        val dateNew = Date(date)
+        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
+        val currentDate = dateFormat.format(currentDateTime)
+        val providedDate = dateFormat.format(dateNew)
+        var time = ""
+        if(currentDate.equals(providedDate)) {
+            val timeFormat = SimpleDateFormat(
+                "hh:mm aa",
+                Locale.ENGLISH
+            )
+            time = timeFormat.format(dateNew)
+        }else{
+            val dateTimeFormat = SimpleDateFormat(
+                "dd-MM-yy hh:mm aa",
+                Locale.ENGLISH
+            )
+            time = dateTimeFormat.format(dateNew)
+        }
+        val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
+        timeTextView?.setText(time.toString())
+    }
+
     fun getUserLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.user_message_area, null) as FrameLayout?
@@ -195,4 +261,18 @@ class ChatFragment : Fragment() {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
     }
+
+    fun getBotLayout(type: String): FrameLayout? {
+        when (type) {
+            "image" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
+            }
+            else -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
+            }
+        }
+    }
+
 }
