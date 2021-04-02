@@ -1,8 +1,11 @@
 package com.jem.algotalk
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.provider.BaseColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -42,7 +45,10 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+    private lateinit var checkBox: CheckBox
 
+    //디비헬퍼, 디비 선언
+    private lateinit var dbHelper : FeedReaderDbHelper
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +70,8 @@ class ChatFragment : Fragment() {
         sendButton.setOnClickListener {
             sendMessage(view)
         }
+
+        Log.i("sangeun", "채팅 뷰 create")
         return view
     }
 
@@ -71,7 +79,12 @@ class ChatFragment : Fragment() {
         super.onAttach(context)
     }
 
-    fun sendMessage(view: View) {
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
+    }
+
+    fun sendMessage(view:View) {
         val msg:String = editText.text.toString().trim()
         val date = Date(System.currentTimeMillis())
 
@@ -153,6 +166,22 @@ class ChatFragment : Fragment() {
         messageTextView?.setText(message)
         frameLayout?.requestFocus()
         editText.requestFocus()
+        dbHelper = FeedReaderDbHelper(requireContext())
+
+        Log.i("sangeun", "메세지 출력 확인")
+        val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
+        for (i in 0 until bookmark.size){
+            if(bookmark[i].content == message)
+                bookmarkbutton?.isChecked=true
+        }
+        bookmarkbutton?.setOnClickListener { view ->
+            if (bookmarkbutton.isChecked)
+                dbHelper.insertBookmark(message)
+            else
+                dbHelper.deleteBookmark(message)
+        }
+
         val currentDateTime = Date(System.currentTimeMillis())
         val dateNew = Date(date)
         val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
