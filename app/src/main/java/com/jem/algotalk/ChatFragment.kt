@@ -86,7 +86,7 @@ class ChatFragment : Fragment() {
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.102:5005/webhooks/rest/") //로컬호스트말고 컴퓨터에 할당된 ip를 입력해야함. server ip
+            .baseUrl("https://algotalk.kro.kr/webhooks/rest/") //로컬호스트말고 컴퓨터에 할당된 ip를 입력해야함. server ip
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
