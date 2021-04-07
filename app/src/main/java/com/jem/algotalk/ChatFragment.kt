@@ -86,7 +86,7 @@ class ChatFragment : Fragment() {
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.102:5005/webhooks/rest/") //로컬호스트말고 컴퓨터에 할당된 ip를 입력해야함. server ip
+            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -165,16 +165,24 @@ class ChatFragment : Fragment() {
 
         Log.i("sangeun", "메세지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
-        for (i in 0 until bookmark.size){
-            if(bookmark[i].content == message)
-                bookmarkbutton?.isChecked=true
-        }
+
+        val bookmark = Bookmark()
+        bookmark.content = message
+        bookmark.img_uri = "none"
+
+        Log.i("sangeun_con", bookmark.content.toString())
+        Log.i("sangeun_img", bookmark.img_uri.toString())
+
+        val bookmark_flag = dbHelper.isAlready(bookmark)
+
+        if (bookmark_flag == 1)
+            bookmarkbutton?.isChecked = true
+
         bookmarkbutton?.setOnClickListener { view ->
             if (bookmarkbutton.isChecked)
-                dbHelper.insertBookmark(message)
+                dbHelper.insertBookmark(bookmark)
             else
-                dbHelper.deleteBookmark(message)
+                dbHelper.deleteBookmark(bookmark)
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
@@ -224,6 +232,30 @@ class ChatFragment : Fragment() {
 
         frameLayout?.requestFocus()
         editText.requestFocus()
+
+        dbHelper = FeedReaderDbHelper(requireContext())
+
+        Log.i("sangeun", "이미지 출력 확인")
+        val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+
+        val bookmark = Bookmark()
+        bookmark.content = "none"
+        bookmark.img_uri = message
+
+        Log.i("sangeun", bookmark.toString())
+
+        val bookmark_flag = dbHelper.isAlready(bookmark)
+
+        if (bookmark_flag == 1)
+            bookmarkbutton?.isChecked = true
+
+        bookmarkbutton?.setOnClickListener { view ->
+            if (bookmarkbutton.isChecked)
+                dbHelper.insertBookmark(bookmark)
+            else
+                dbHelper.deleteBookmark(bookmark)
+        }
+
         val currentDateTime = Date(System.currentTimeMillis())
         val dateNew = Date(date)
         val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
