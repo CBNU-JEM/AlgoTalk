@@ -13,6 +13,7 @@ import android.widget.*
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.*
@@ -54,7 +55,10 @@ class BookmarkFragment : Fragment() {
         val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
         for (i in 0 until bookmark.size){
             val date = Date(System.currentTimeMillis())
-            showTextView(bookmark[i].content, date.toString(), view)
+            if(bookmark[i].content == "none")
+                showImageView(bookmark[i].img_uri, date.toString(), view)
+            else
+                showTextView(bookmark[i].content, date.toString(), view)
         }
         Log.i("sangeun", "북마m 뷰 create")
         return view
@@ -83,14 +87,17 @@ class BookmarkFragment : Fragment() {
         //editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        //Log.i("sangeun", "메세지 출력 확인")
+        val bookmark = Bookmark()
+        bookmark.content = message
+        bookmark.img_uri = "none"
+
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
         bookmarkbutton?.isChecked=true
         bookmarkbutton?.setOnClickListener { view ->
             if (!bookmarkbutton.isChecked)
-                dbHelper.deleteBookmark(message)
+                dbHelper.deleteBookmark(bookmark)
             else
-                dbHelper.insertBookmark(message)
+                dbHelper.insertBookmark(bookmark)
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
@@ -116,8 +123,81 @@ class BookmarkFragment : Fragment() {
         timeTextView?.setText(time.toString())
     }
 
+    fun showImageView(message: String, date: String, view: View) {
+        var frameLayout: FrameLayout? = null
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        frameLayout = getBotLayout("image")
+
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        val messageImageView = frameLayout?.findViewById<ImageView>(R.id.chat_image_message)
+
+        Glide.with(this).load(message).into(messageImageView!!);
+
+        frameLayout?.requestFocus()
+        //editText.requestFocus()
+
+        dbHelper = FeedReaderDbHelper(requireContext())
+
+        Log.i("sangeun", "이미지 출력 확인")
+        val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+
+        val bookmark = Bookmark()
+        bookmark.content = "none"
+        bookmark.img_uri = message
+
+        Log.i("sangeun", bookmark.toString())
+
+        val bookmark_flag = dbHelper.isAlready(bookmark)
+
+        if (bookmark_flag == 1)
+            bookmarkbutton?.isChecked = true
+
+        bookmarkbutton?.setOnClickListener { view ->
+            if (bookmarkbutton.isChecked)
+                dbHelper.insertBookmark(bookmark)
+            else
+                dbHelper.deleteBookmark(bookmark)
+        }
+
+        val currentDateTime = Date(System.currentTimeMillis())
+        val dateNew = Date(date)
+        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
+        val currentDate = dateFormat.format(currentDateTime)
+        val providedDate = dateFormat.format(dateNew)
+        var time = ""
+        if(currentDate.equals(providedDate)) {
+            val timeFormat = SimpleDateFormat(
+                "hh:mm aa",
+                Locale.ENGLISH
+            )
+            time = timeFormat.format(dateNew)
+        }else{
+            val dateTimeFormat = SimpleDateFormat(
+                "dd-MM-yy hh:mm aa",
+                Locale.ENGLISH
+            )
+            time = dateTimeFormat.format(dateNew)
+        }
+        val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
+        timeTextView?.setText(time.toString())
+    }
+
     fun getBotLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
+    }
+
+    fun getBotLayout(type: String): FrameLayout? {
+        when (type) {
+            "image" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
+            }
+            else -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
+            }
+        }
     }
 }

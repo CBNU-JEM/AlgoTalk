@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import java.util.ArrayList
 
 object FeedReaderContract {
@@ -15,13 +14,15 @@ object FeedReaderContract {
     object FeedEntry : BaseColumns {
         const val TABLE_NAME = "Bookmarks"
         const val COLUMN_CONTENT = "content"
+        const val COLUMN_IMAGE = "image"
     }
 }
 
 private const val SQL_CREATE_ENTRIES =
     "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
             "${BaseColumns._ID} INTEGER PRIMARY KEY," +
-            "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} TEXT)"
+            "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} TEXT," +
+            "${FeedReaderContract.FeedEntry.COLUMN_IMAGE} TEXT)"
 
 private const val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.TABLE_NAME}"
 
@@ -45,17 +46,23 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         const val DATABASE_NAME = "Algotalk.db"
     }
 
-    fun insertBookmark(content: String){
+    fun insertBookmark(bookmark: Bookmark){
         // Gets the data repository in write mode
         val database = this.writableDatabase
 
+        Log.i("insert_sangeun_con", bookmark.content.toString())
+        Log.i("insert_sangeun_img", bookmark.img_uri.toString())
+
         // Create a new map of values, where column names are the keys
         val values = ContentValues().apply {
-            put(FeedReaderContract.FeedEntry.COLUMN_CONTENT, content)
+            put(FeedReaderContract.FeedEntry.COLUMN_CONTENT, bookmark.content)
+            put(FeedReaderContract.FeedEntry.COLUMN_IMAGE, bookmark.img_uri)
         }
 
         // Insert the new row, returning the primary key value of the new row
         val newRowId = database?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+
+        Log.i("insert_sangeun_rowid", newRowId.toString())
 
 //        if(newRowId == (-1).toLong())
 //            Toast.makeText(context,"Failed", Toast.LENGTH_LONG).show()
@@ -74,7 +81,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
-        val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_CONTENT)
+        val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_CONTENT, FeedReaderContract.FeedEntry.COLUMN_IMAGE)
 
 //        // Filter results WHERE "title" = 'My Title'
 //        val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} = ?"
@@ -107,6 +114,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 Log.i("sangeun", cursor.getString(cursor.getColumnIndex("content")))
                 val bookmark = Bookmark()
                 bookmark.content = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT))
+                bookmark.img_uri = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_IMAGE))
                 bookmarklist.add(bookmark)
             }while (cursor.moveToNext())
         }
@@ -115,20 +123,79 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         return bookmarklist
     }
 
-    fun deleteBookmark(content: String){
+    fun deleteBookmark(bookmark: Bookmark){
         // Gets the data repository in write mode
         val database = this.writableDatabase
 
-        // Define 'where' part of query.
-        val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} LIKE ?"
-        // Specify arguments in placeholder order.
-        val selectionArgs = arrayOf(content)
-        // Issue SQL statement.
-        val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+        if(bookmark.content == "none") {
+            // Define 'where' part of query.
+            val selection = "${FeedReaderContract.FeedEntry.COLUMN_IMAGE} LIKE ?"
+            // Specify arguments in placeholder order.
 
-//        if(deletedRows == (-1))
-//            Toast.makeText(context,"Failed", Toast.LENGTH_LONG).show()
-//        else
-//            Toast.makeText(context,"Success", Toast.LENGTH_LONG).show()
+            var selectionArgs = arrayOf(bookmark.img_uri)
+
+            // Issue SQL statement.
+            val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+            Log.i("delete_image_row", deletedRows.toString())
+        }
+        else{
+            // Define 'where' part of query.
+            val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} LIKE ?"
+            // Specify arguments in placeholder order.
+
+            var selectionArgs = arrayOf(bookmark.img_uri)
+
+            // Issue SQL statement.
+            val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+            Log.i("delete_content_row", deletedRows.toString())
+        }
+    }
+
+    fun isAlready(bookmark: Bookmark): Int{
+        val database = this.readableDatabase
+
+        val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_CONTENT, FeedReaderContract.FeedEntry.COLUMN_IMAGE)
+
+        val cursor = database.query(
+            FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
+            projection,             // The array of columns to return (pass null to get all)
+            null,              // The columns for the WHERE clause
+            null,          // The values for the WHERE clause
+            null,                   // don't group the rows
+            null,                   // don't filter by row groups
+            null               // The sort order
+        )
+
+        Log.i("ready_sangeun_con", bookmark.content.toString())
+        Log.i("ready_sangeun_img", bookmark.img_uri.toString())
+
+        var flag = 0
+
+        if(cursor.moveToFirst()){
+            if(bookmark.content=="none"){
+                Log.i("is aready", "content = none")
+                do {
+                    if(cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_IMAGE)) == bookmark.img_uri){
+                        flag = 1
+                        break
+                    }
+                }while (cursor.moveToNext())
+            }else{
+                Log.i("is aready", "image = none")
+                do {
+                    val contentOnDB = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT))
+                    Log.i("디비에 있는 content", contentOnDB)
+                    if(contentOnDB == bookmark.content) {
+                        flag = 1
+                        break
+                    }
+                }while (cursor.moveToNext())
+            }
+
+        }
+
+        Log.i("ready_flag", flag.toString())
+
+        return flag
     }
 }
