@@ -6,9 +6,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="4dp">
 
+    <ImageView
+        android:id="@+id/algobot_character"
+        android:layout_width="40dp"
+        android:layout_height="50dp"
+        android:src="@drawable/algotalk_character"
+        android:layout_marginRight="4dp"
+        android:layout_marginLeft="4dp"/>
+
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="51dp"
+        android:background="@drawable/bot_chat"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal">
 
         <LinearLayout
             android:id="@+id/chat_image_message_layout"

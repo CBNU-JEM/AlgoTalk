@@ -42,7 +42,7 @@
             android:id="@+id/layout_chattingArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#ffffff"
+            android:background="#DAF6E1"
             android:minHeight="48dp"
             android:orientation="horizontal">
 
@@ -62,7 +62,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Enter message"
-                    android:background="@color/white"
+                    android:background="#DAF6E1"
                     android:maxLines="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
