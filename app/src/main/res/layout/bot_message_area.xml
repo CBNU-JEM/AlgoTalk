@@ -29,7 +29,7 @@
             android:layout_marginLeft="51dp"
             android:background="@drawable/bot_chat"
             android:gravity="start|center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/chat_message"
