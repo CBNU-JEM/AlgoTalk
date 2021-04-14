@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
+import android.view.KeyEvent.KEYCODE_ENTER
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -61,6 +63,15 @@ class ChatFragment : Fragment() {
         }
 
         editText = view.findViewById(R.id.editText_chattingArea)
+        editText.setOnKeyListener{vieww, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
+                sendMessage(view)
+                return@setOnKeyListener true
+            }
+            false
+        }
+
+
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {

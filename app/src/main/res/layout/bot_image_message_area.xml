@@ -31,6 +31,8 @@
             android:id="@+id/chat_image_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:maxWidth="300dp"
             android:layout_gravity="start"
             android:layout_marginTop="4dp"
             android:padding="12dp" />
@@ -38,6 +40,8 @@
             android:id="@+id/image_message_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:maxWidth="300dp"
             android:layout_gravity="end|bottom"
             android:layout_margin="4dp"
             tools:text="@tools:sample/date/hhmm"
