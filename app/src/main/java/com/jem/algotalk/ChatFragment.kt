@@ -12,8 +12,11 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -44,9 +47,10 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+    private lateinit var recyclerView: RecyclerView
 
     //디비헬퍼, 디비 선언
-    private lateinit var dbHelper : FeedReaderDbHelper
+    private lateinit var dbHelper: FeedReaderDbHelper
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,15 +61,16 @@ class ChatFragment : Fragment() {
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
 
-        this.inflater=inflater
+        this.inflater = inflater
         if (container != null) {
-            this.container=container
+            this.container = container
         }
 
         editText = view.findViewById(R.id.editText_chattingArea)
-        editText.setOnKeyListener{vieww, keyCode, event ->
+        editText.setOnKeyListener { vieww, keyCode, event ->
             if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
-                sendMessage(view)
+                val message: String = editText.text.toString().trim()
+                sendMessage(view, message)
                 return@setOnKeyListener true
             }
             false
@@ -75,7 +80,8 @@ class ChatFragment : Fragment() {
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
-            sendMessage(view)
+            val message: String = editText.text.toString().trim()
+            sendMessage(view, message)
         }
 
         return view
@@ -90,19 +96,20 @@ class ChatFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun sendMessage(view: View) {
-        val msg:String = editText.text.toString().trim()
+    fun sendMessage(view: View, message: String) {
+        val msg: String = editText.text.toString().trim()
         val date = Date(System.currentTimeMillis())
 
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
             .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
+//            .baseUrl("http://192.168.0.7:5005/webhooks/rest/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val userMessage = UserMessage()
-        if(msg.trim().isEmpty())
+        if (msg.trim().isEmpty())
             Toast.makeText(getActivity(), "Please enter your query", Toast.LENGTH_SHORT).show()
         else {
             Log.e("Msg", "msssage: $msg")
@@ -129,16 +136,23 @@ class ChatFragment : Fragment() {
                         Log.e("text c", "${botResponse.text}")
                         if (botResponse.text != null) {
                             showTextView(botResponse.text, BOT, date.toString(), view)
+                            if (botResponse.buttons != null) {
+                                val buttonRecyclerView =
+                                    ButtonRecyclerView(botResponse.buttons)
+                                recyclerView = view.findViewById(R.id.button_list)
+                                recyclerView.adapter = buttonRecyclerView
+                                val layoutManager = LinearLayoutManager(activity)
+                                layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+                                recyclerView.layoutManager = layoutManager
+                                Log.e("Button c", "${botResponse.buttons.size}")
+                            }
                         }
-
                         Log.e("image c", "${botResponse.image}")
                         if (botResponse.image != null) {
                             showImageView(botResponse.image, BOT, date.toString(), view)
                         }
 
-                        if (botResponse.buttons != null) {
-                            Log.e("Button c", "${botResponse.buttons.size}")
-                        }
+
                     }
                 }
             }
@@ -155,14 +169,14 @@ class ChatFragment : Fragment() {
     fun showTextView(message: String, type: Int, date: String, view: View) {
         var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
-        when(type){
+        when (type) {
             USER -> {
                 frameLayout = getUserLayout()
             }
             BOT -> {
                 frameLayout = getBotLayout()
             }
-            else->{
+            else -> {
                 frameLayout = getBotLayout()
             }
         }
@@ -202,13 +216,13 @@ class ChatFragment : Fragment() {
         val currentDate = dateFormat.format(currentDateTime)
         val providedDate = dateFormat.format(dateNew)
         var time = ""
-        if(currentDate.equals(providedDate)) {
+        if (currentDate.equals(providedDate)) {
             val timeFormat = SimpleDateFormat(
                 "hh:mm aa",
                 Locale.ENGLISH
             )
             time = timeFormat.format(dateNew)
-        }else{
+        } else {
             val dateTimeFormat = SimpleDateFormat(
                 "dd-MM-yy hh:mm aa",
                 Locale.ENGLISH
@@ -220,18 +234,17 @@ class ChatFragment : Fragment() {
     }
 
 
-
     fun showImageView(message: String, type: Int, date: String, view: View) {
         var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
-        when(type){
+        when (type) {
             USER -> {
                 frameLayout = getUserLayout()
             }
             BOT -> {
                 frameLayout = getBotLayout("image")
             }
-            else->{
+            else -> {
                 frameLayout = getBotLayout("image")
             }
         }
@@ -273,13 +286,13 @@ class ChatFragment : Fragment() {
         val currentDate = dateFormat.format(currentDateTime)
         val providedDate = dateFormat.format(dateNew)
         var time = ""
-        if(currentDate.equals(providedDate)) {
+        if (currentDate.equals(providedDate)) {
             val timeFormat = SimpleDateFormat(
                 "hh:mm aa",
                 Locale.ENGLISH
             )
             time = timeFormat.format(dateNew)
-        }else{
+        } else {
             val dateTimeFormat = SimpleDateFormat(
                 "dd-MM-yy hh:mm aa",
                 Locale.ENGLISH
@@ -288,6 +301,34 @@ class ChatFragment : Fragment() {
         }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
         timeTextView?.setText(time.toString())
+    }
+
+    inner class ButtonRecyclerView(var buttons: List<BotResponse.Buttons>) :
+        RecyclerView.Adapter<ButtonRecyclerView.ButtonViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ButtonViewHolder {
+            val view =
+                LayoutInflater.from(activity).inflate(R.layout.button_list_item, parent, false)
+            return ButtonViewHolder(view)
+
+        }
+
+        override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
+            val payload_button = buttons[position]
+            holder.button.text = payload_button.title
+            holder.button.setOnClickListener {
+                view?.let { it1 -> sendMessage(it1, payload_button.payload) }
+            }
+        }
+
+        override fun getItemCount(): Int {
+            buttons.isEmpty() ?: return -1
+            return buttons.size
+
+        }
+
+        inner class ButtonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val button = view.findViewById<MaterialButton>(R.id.payload_button)
+        }
     }
 
     fun getUserLayout(): FrameLayout? {

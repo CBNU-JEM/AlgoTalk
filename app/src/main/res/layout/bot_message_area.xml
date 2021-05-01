@@ -62,5 +62,10 @@
             android:layout_marginRight="6dp"
             android:button="@null"
             android:background="@drawable/btn_star" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/button_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </FrameLayout>
