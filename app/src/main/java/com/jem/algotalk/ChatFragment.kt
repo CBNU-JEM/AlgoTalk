@@ -47,8 +47,6 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
-    private lateinit var recyclerView: RecyclerView
-
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper: FeedReaderDbHelper
 
@@ -69,8 +67,8 @@ class ChatFragment : Fragment() {
         editText = view.findViewById(R.id.editText_chattingArea)
         editText.setOnKeyListener { vieww, keyCode, event ->
             if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
-                val message: String = editText.text.toString().trim()
-                sendMessage(view, message)
+                val msg: String = editText.text.toString().trim()
+                sendMessage(view, msg)
                 return@setOnKeyListener true
             }
             false
@@ -80,8 +78,9 @@ class ChatFragment : Fragment() {
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
-            val message: String = editText.text.toString().trim()
-            sendMessage(view, message)
+            val msg: String = editText.text.toString().trim()
+
+            sendMessage(view, msg)
         }
 
         return view
@@ -97,9 +96,7 @@ class ChatFragment : Fragment() {
     }
 
     fun sendMessage(view: View, message: String) {
-        val msg: String = editText.text.toString().trim()
         val date = Date(System.currentTimeMillis())
-
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
@@ -109,13 +106,13 @@ class ChatFragment : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val userMessage = UserMessage()
-        if (msg.trim().isEmpty())
+        if (message.trim().isEmpty())
             Toast.makeText(getActivity(), "Please enter your query", Toast.LENGTH_SHORT).show()
         else {
-            Log.e("Msg", "msssage: $msg")
+            Log.e("Msg", "msssage: $message")
             editText.setText("")
-            userMessage.UserMessage("User", msg)
-            showTextView(msg, USER, date.toString(), view)
+            userMessage.UserMessage("User", message)
+            showTextView(message, USER, date.toString(), view)
 
         }
         val messageSender = retrofit.create(MessageSender::class.java)
@@ -132,27 +129,18 @@ class ChatFragment : Fragment() {
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
-
-                        Log.e("text c", "${botResponse.text}")
+                        //Log.e("text c", "${botResponse.text}")
                         if (botResponse.text != null) {
                             showTextView(botResponse.text, BOT, date.toString(), view)
-                            if (botResponse.buttons != null) {
-                                val buttonRecyclerView =
-                                    ButtonRecyclerView(botResponse.buttons)
-                                recyclerView = view.findViewById(R.id.button_list)
-                                recyclerView.adapter = buttonRecyclerView
-                                val layoutManager = LinearLayoutManager(activity)
-                                layoutManager.orientation = LinearLayoutManager.HORIZONTAL
-                                recyclerView.layoutManager = layoutManager
-                                Log.e("Button c", "${botResponse.buttons.size}")
-                            }
                         }
-                        Log.e("image c", "${botResponse.image}")
+                        //Log.e("image c", "${botResponse.image}")
                         if (botResponse.image != null) {
                             showImageView(botResponse.image, BOT, date.toString(), view)
                         }
-
-
+                        if (botResponse.buttons != null) {
+                            showButtonView(botResponse.buttons,BOT,view)
+                            Log.e("Button c", "${botResponse.buttons.size}")
+                        }
                     }
                 }
             }
@@ -181,22 +169,22 @@ class ChatFragment : Fragment() {
             }
         }
         frameLayout?.isFocusableInTouchMode = true
-        linearLayout.addView(frameLayout)
+            linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.setText(message)
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        Log.i("sangeun", "메세지 출력 확인")
+        //Log.i("sangeun", "메세지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
 
         val bookmark = Bookmark()
         bookmark.content = message
         bookmark.img_uri = "none"
 
-        Log.i("sangeun_con", bookmark.content.toString())
-        Log.i("sangeun_img", bookmark.img_uri.toString())
+        //Log.i("sangeun_con", bookmark.content.toString())
+        //Log.i("sangeun_img", bookmark.img_uri.toString())
 
         val bookmark_flag = dbHelper.isAlready(bookmark)
 
@@ -230,6 +218,7 @@ class ChatFragment : Fragment() {
             time = dateTimeFormat.format(dateNew)
         }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
+
         timeTextView?.setText(time.toString())
     }
 
@@ -259,14 +248,14 @@ class ChatFragment : Fragment() {
 
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        Log.i("sangeun", "이미지 출력 확인")
+        //Log.i("sangeun", "이미지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
 
         val bookmark = Bookmark()
         bookmark.content = "none"
         bookmark.img_uri = message
 
-        Log.i("sangeun", bookmark.toString())
+        //Log.i("sangeun", bookmark.toString())
 
         val bookmark_flag = dbHelper.isAlready(bookmark)
 
@@ -303,17 +292,45 @@ class ChatFragment : Fragment() {
         timeTextView?.setText(time.toString())
     }
 
+    fun showButtonView(buttons: List<BotResponse.Buttons>, type: Int, view: View) {
+        var frameLayout: FrameLayout? = null
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        when (type) {
+            USER -> {
+                frameLayout = getUserLayout()
+            }
+            BOT -> {
+                frameLayout = getBotLayout("button")
+            }
+            else -> {
+                frameLayout = getBotLayout("button")
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        val buttonRecyclerView = ButtonRecyclerView(buttons)
+        val layoutManager:LinearLayoutManager?
+        val recyclerView= view.findViewById<RecyclerView>(R.id.button_list)
+        layoutManager = LinearLayoutManager(activity)
+        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = buttonRecyclerView
+    }
+
     inner class ButtonRecyclerView(var buttons: List<BotResponse.Buttons>) :
         RecyclerView.Adapter<ButtonRecyclerView.ButtonViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ButtonViewHolder {
+
+            Log.i("어댑터", "onCreateViewHolder")
             val view =
                 LayoutInflater.from(activity).inflate(R.layout.button_list_item, parent, false)
             return ButtonViewHolder(view)
 
         }
-
         override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
             val payload_button = buttons[position]
+
+            Log.i("어댑터", "onBindViewHolder")
             holder.button.text = payload_button.title
             holder.button.setOnClickListener {
                 view?.let { it1 -> sendMessage(it1, payload_button.payload) }
@@ -321,6 +338,8 @@ class ChatFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
+
+            Log.i("getItemCount", buttons.size.toString())
             buttons.isEmpty() ?: return -1
             return buttons.size
 
@@ -346,6 +365,10 @@ class ChatFragment : Fragment() {
             "image" -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
+            }
+            "button"->{
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_button_area, null) as FrameLayout?
             }
             else -> {
                 val inflater = LayoutInflater.from(activity)
