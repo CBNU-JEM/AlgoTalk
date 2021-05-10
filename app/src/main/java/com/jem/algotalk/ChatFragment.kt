@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import okhttp3.OkHttpClient
@@ -47,8 +48,10 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper: FeedReaderDbHelper
+    private lateinit var btnRecyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,6 +61,7 @@ class ChatFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_chat, container, false);
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
+
 
         this.inflater = inflater
         if (container != null) {
@@ -138,7 +142,7 @@ class ChatFragment : Fragment() {
                             showImageView(botResponse.image, BOT, date.toString(), view)
                         }
                         if (botResponse.buttons != null) {
-                            showButtonView(botResponse.buttons,BOT,view)
+                            showButtonView(botResponse.buttons, BOT, view)
                             Log.e("Button c", "${botResponse.buttons.size}")
                         }
                     }
@@ -169,7 +173,7 @@ class ChatFragment : Fragment() {
             }
         }
         frameLayout?.isFocusableInTouchMode = true
-            linearLayout.addView(frameLayout)
+        linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.setText(message)
         frameLayout?.requestFocus()
@@ -308,29 +312,28 @@ class ChatFragment : Fragment() {
         }
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
+        frameLayout?.requestFocus()
+        editText.requestFocus()
         val buttonRecyclerView = ButtonRecyclerView(buttons)
-        val layoutManager:LinearLayoutManager?
-        val recyclerView= view.findViewById<RecyclerView>(R.id.button_list)
-        layoutManager = LinearLayoutManager(activity)
-        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = buttonRecyclerView
+        val layoutManager: FlexboxLayoutManager?
+        val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
+        layoutManager= FlexboxLayoutManager(activity)
+        //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+        recyclerView?.layoutManager = layoutManager
+        recyclerView?.adapter = buttonRecyclerView
     }
 
     inner class ButtonRecyclerView(var buttons: List<BotResponse.Buttons>) :
         RecyclerView.Adapter<ButtonRecyclerView.ButtonViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ButtonViewHolder {
-
-            Log.i("어댑터", "onCreateViewHolder")
             val view =
                 LayoutInflater.from(activity).inflate(R.layout.button_list_item, parent, false)
             return ButtonViewHolder(view)
 
         }
+
         override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
             val payload_button = buttons[position]
-
-            Log.i("어댑터", "onBindViewHolder")
             holder.button.text = payload_button.title
             holder.button.setOnClickListener {
                 view?.let { it1 -> sendMessage(it1, payload_button.payload) }
@@ -338,11 +341,8 @@ class ChatFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
-
-            Log.i("getItemCount", buttons.size.toString())
             buttons.isEmpty() ?: return -1
             return buttons.size
-
         }
 
         inner class ButtonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -366,7 +366,7 @@ class ChatFragment : Fragment() {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
             }
-            "button"->{
+            "button" -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_button_area, null) as FrameLayout?
             }
