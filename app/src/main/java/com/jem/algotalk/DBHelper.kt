@@ -143,7 +143,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} LIKE ?"
             // Specify arguments in placeholder order.
 
-            var selectionArgs = arrayOf(bookmark.img_uri)
+            var selectionArgs = arrayOf(bookmark.content)
 
             // Issue SQL statement.
             val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
