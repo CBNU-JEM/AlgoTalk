@@ -336,7 +336,7 @@ class ChatFragment : Fragment() {
             val payload_button = buttons[position]
             holder.button.text = payload_button.title
             holder.button.setOnClickListener {
-                view?.let { it1 -> sendMessage(it1, payload_button.payload) }
+                view?.let { it1 -> sendMessage(it1, payload_button.title) }
             }
         }
 
