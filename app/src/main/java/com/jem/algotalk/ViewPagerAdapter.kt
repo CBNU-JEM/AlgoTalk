@@ -8,13 +8,14 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class ViewPagerAdapter(fa: FragmentActivity): FragmentStateAdapter(fa){
-    val pageCount = 2
+    private val pageCount = 3
 
     override fun createFragment(position: Int): Fragment {
         Log.i("sangeun", "createFragment")
         return when(position){
             0 -> BookmarkFragment()
             1 -> ChatFragment()
+            2 -> SettingsFragment()
             else -> ErrorFragment()
         }
     }

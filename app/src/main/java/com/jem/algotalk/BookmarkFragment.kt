@@ -10,8 +10,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.view.get
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -41,6 +43,7 @@ class BookmarkFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_bookmark, container, false);
+        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_layout)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
@@ -52,15 +55,20 @@ class BookmarkFragment : Fragment() {
 
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
-        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
-        for (i in 0 until bookmark.size){
-            val date = Date(System.currentTimeMillis())
-            if(bookmark[i].content == "none")
-                showImageView(bookmark[i].img_uri, date.toString(), view)
-            else
-                showTextView(bookmark[i].content, date.toString(), view)
+        swipeRefreshLayout.setOnRefreshListener {
+            val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
+            for (i in 0 until bookmark.size){
+                val date = Date(System.currentTimeMillis())
+                if(bookmark[i].content == "none")
+                    showImageView(bookmark[i].img_uri, date.toString(), view)
+                else
+                    showTextView(bookmark[i].content, date.toString(), view)
+            }
+            Log.i("sangeun", "북마크 뷰 create")
+
+            swipeRefreshLayout.isRefreshing = false
         }
-        Log.i("sangeun", "북마m 뷰 create")
+
         return view
     }
 
@@ -94,8 +102,10 @@ class BookmarkFragment : Fragment() {
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
         bookmarkbutton?.isChecked=true
         bookmarkbutton?.setOnClickListener { view ->
-            if (!bookmarkbutton.isChecked)
+            if (!bookmarkbutton.isChecked) {
                 dbHelper.deleteBookmark(bookmark)
+                Log.i("sangeun", "북마크 지워짐")
+            }
             else
                 dbHelper.insertBookmark(bookmark)
         }

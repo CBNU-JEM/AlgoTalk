@@ -127,6 +127,8 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         // Gets the data repository in write mode
         val database = this.writableDatabase
 
+        Log.i("delete_sangeun_content", bookmark.content)
+
         if(bookmark.content == "none") {
             // Define 'where' part of query.
             val selection = "${FeedReaderContract.FeedEntry.COLUMN_IMAGE} LIKE ?"
@@ -143,7 +145,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             val selection = "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} LIKE ?"
             // Specify arguments in placeholder order.
 
-            var selectionArgs = arrayOf(bookmark.img_uri)
+            var selectionArgs = arrayOf(bookmark.content)
 
             // Issue SQL statement.
             val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)

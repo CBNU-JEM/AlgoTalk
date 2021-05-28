@@ -198,8 +198,10 @@ class ChatFragment : Fragment() {
         bookmarkbutton?.setOnClickListener { view ->
             if (bookmarkbutton.isChecked)
                 dbHelper.insertBookmark(bookmark)
-            else
+            else {
                 dbHelper.deleteBookmark(bookmark)
+                Log.i("sangeun", "북마크 지워짐")
+            }
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
