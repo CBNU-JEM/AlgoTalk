@@ -132,7 +132,7 @@ class ChatFragment : Fragment() {
                 response: Response<List<BotResponse>>
             ) {
                 if (response.body() == null || response.body()!!.size == 0) {
-                    val botMessage = "Sorry didn't understand"
+                    val botMessage = "미안.. 무슨말인지 이해하지 못 하겠어 \uD83D\uDE05"
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
@@ -153,7 +153,7 @@ class ChatFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
-                val botMessage = "Check your network connection"
+                val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
                 t.printStackTrace()
                 Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
