@@ -143,7 +143,7 @@ class ChatFragment : Fragment() {
                 Log.i("server response end",  endTime.toString())
                 Log.i("response time(ms)",  (endTime-startTime).toString())
                 if (response.body() == null || response.body()!!.size == 0) {
-                    val botMessage = "미안해 뭐라는지 모르겠어"
+                    val botMessage = "미안.. 무슨말인지 이해하지 못 하겠어 \uD83D\uDE05"
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
@@ -168,7 +168,7 @@ class ChatFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
-                val botMessage = "네트워크 연결을 확인해줘"
+                val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
                 t.printStackTrace()
                 Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
