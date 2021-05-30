@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val tabLayoutTextArray = arrayOf("즐겨찾기", "채팅")
+        val tabLayoutTextArray = arrayOf("채팅","즐겨찾기")
         val tabLayoutColorArray = arrayOf(R.color.light_green, R.color.light_green)
         //val tabLayoutIconArray = arrayOf(R.drawable.ic_view_list_48px,R.drawable.ic_info_48px)
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)

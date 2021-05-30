@@ -13,8 +13,8 @@ class ViewPagerAdapter(fa: FragmentActivity): FragmentStateAdapter(fa){
     override fun createFragment(position: Int): Fragment {
         Log.i("sangeun", "createFragment")
         return when(position){
-            0 -> BookmarkFragment()
-            1 -> ChatFragment()
+            0 -> ChatFragment()
+            1 -> BookmarkFragment()
             else -> ErrorFragment()
         }
     }

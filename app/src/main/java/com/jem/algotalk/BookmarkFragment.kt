@@ -45,6 +45,8 @@ class BookmarkFragment : Fragment() {
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
 
+        val startTime= System.currentTimeMillis()
+        Log.i("tab click start", startTime.toString())
         this.inflater=inflater
         if (container != null) {
             this.container=container
@@ -60,7 +62,12 @@ class BookmarkFragment : Fragment() {
             else
                 showTextView(bookmark[i].content, date.toString(), view)
         }
-        Log.i("sangeun", "북마m 뷰 create")
+
+
+        val endTime= System.currentTimeMillis()
+        Log.i("tab click end",  endTime.toString())
+        Log.i("tab click end",  (endTime-startTime).toString())
+
         return view
     }
 

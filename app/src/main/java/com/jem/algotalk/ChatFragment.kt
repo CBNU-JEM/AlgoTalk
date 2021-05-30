@@ -27,6 +27,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.properties.Delegates
 
 
 /**
@@ -48,6 +49,9 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+    var endTime1 =System.currentTimeMillis()
+    var startTime1=System.currentTimeMillis()
+
 
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper: FeedReaderDbHelper
@@ -101,6 +105,9 @@ class ChatFragment : Fragment() {
     }
 
     fun sendMessage(view: View, message: String, printMessage: String) {
+        startTime1=System.currentTimeMillis()
+        val startTime= System.currentTimeMillis()
+        Log.i("server response start",  startTime.toString())
         val date = Date(System.currentTimeMillis())
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
@@ -112,7 +119,7 @@ class ChatFragment : Fragment() {
             .build()
         val userMessage = UserMessage()
         if (message.trim().isEmpty())
-            Toast.makeText(getActivity(), "Please enter your query", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getActivity(), "쿼리를 확인해줘", Toast.LENGTH_SHORT).show()
         else {
             Log.e("Msg", "msssage: $message")
             editText.setText("")
@@ -131,8 +138,12 @@ class ChatFragment : Fragment() {
                 call: Call<List<BotResponse>>,
                 response: Response<List<BotResponse>>
             ) {
+
+                val endTime= System.currentTimeMillis()
+                Log.i("server response end",  endTime.toString())
+                Log.i("response time(ms)",  (endTime-startTime).toString())
                 if (response.body() == null || response.body()!!.size == 0) {
-                    val botMessage = "Sorry didn't understand"
+                    val botMessage = "미안해 뭐라는지 모르겠어"
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
@@ -150,10 +161,14 @@ class ChatFragment : Fragment() {
                         }
                     }
                 }
+
+                endTime1= System.currentTimeMillis()
+                Log.i("message print end",  endTime1.toString())
+                Log.i("print time(ms)",  (endTime1-startTime1).toString())
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
-                val botMessage = "Check your network connection"
+                val botMessage = "네트워크 연결을 확인해줘"
                 showTextView(botMessage, BOT, date.toString(), view)
                 t.printStackTrace()
                 Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
@@ -339,6 +354,9 @@ class ChatFragment : Fragment() {
             val payload_button = buttons[position]
             holder.button.text = payload_button.title
             holder.button.setOnClickListener {
+
+                startTime1= System.currentTimeMillis()
+                Log.i("message print start",  startTime1.toString())
                 view?.let { it1 -> sendMessage(it1, payload_button.payload, payload_button.title) }
             }
         }

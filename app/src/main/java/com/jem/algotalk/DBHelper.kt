@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
 import android.util.Log
 import android.view.View
-import java.util.ArrayList
+import java.util.*
 
 object FeedReaderContract {
     // Table contents are grouped together in an anonymous object.
@@ -49,9 +49,8 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
     fun insertBookmark(bookmark: Bookmark){
         // Gets the data repository in write mode
         val database = this.writableDatabase
-
-        Log.i("insert_sangeun_con", bookmark.content.toString())
-        Log.i("insert_sangeun_img", bookmark.img_uri.toString())
+        val startTime= System.currentTimeMillis()
+        Log.i("start bookmark click", startTime.toString())
 
         // Create a new map of values, where column names are the keys
         val values = ContentValues().apply {
@@ -62,7 +61,9 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         // Insert the new row, returning the primary key value of the new row
         val newRowId = database?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
 
-        Log.i("insert_sangeun_rowid", newRowId.toString())
+        val endTime= System.currentTimeMillis()
+        Log.i("end bookmark click", endTime.toString())
+        Log.i("time(ms)", (endTime-startTime).toString())
 
 //        if(newRowId == (-1).toLong())
 //            Toast.makeText(context,"Failed", Toast.LENGTH_LONG).show()
