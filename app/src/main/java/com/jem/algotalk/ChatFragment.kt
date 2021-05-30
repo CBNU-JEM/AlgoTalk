@@ -72,8 +72,8 @@ class ChatFragment : Fragment() {
         editText.setOnKeyListener { vieww, keyCode, event ->
             if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 val msg: String = editText.text.toString().trim()
-                if(msg != "")
-                    sendMessage(view, msg)
+                if (msg != "")
+                    sendMessage(view, msg, msg)
                 return@setOnKeyListener true
             }
             false
@@ -84,8 +84,8 @@ class ChatFragment : Fragment() {
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
             val msg: String = editText.text.toString().trim()
-            if(msg != "")
-                sendMessage(view, msg)
+            if (msg != "")
+                sendMessage(view, msg, msg)
         }
 
         return view
@@ -100,7 +100,7 @@ class ChatFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun sendMessage(view: View, message: String) {
+    fun sendMessage(view: View, message: String, printMessage: String) {
         val date = Date(System.currentTimeMillis())
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
@@ -117,8 +117,10 @@ class ChatFragment : Fragment() {
             Log.e("Msg", "msssage: $message")
             editText.setText("")
             userMessage.UserMessage("User", message)
-            showTextView(message, USER, date.toString(), view)
-
+            if (printMessage.isNotEmpty())
+                showTextView(printMessage, USER, date.toString(), view)
+            else
+                showTextView(message, USER, date.toString(), view)
         }
         val messageSender = retrofit.create(MessageSender::class.java)
         val response =
@@ -318,7 +320,7 @@ class ChatFragment : Fragment() {
         val buttonRecyclerView = ButtonRecyclerView(buttons)
         val layoutManager: FlexboxLayoutManager?
         val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
-        layoutManager= FlexboxLayoutManager(activity)
+        layoutManager = FlexboxLayoutManager(activity)
         //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         recyclerView?.layoutManager = layoutManager
         recyclerView?.adapter = buttonRecyclerView
@@ -337,7 +339,7 @@ class ChatFragment : Fragment() {
             val payload_button = buttons[position]
             holder.button.text = payload_button.title
             holder.button.setOnClickListener {
-                view?.let { it1 -> sendMessage(it1, payload_button.title) }
+                view?.let { it1 -> sendMessage(it1, payload_button.payload, payload_button.title) }
             }
         }
 
