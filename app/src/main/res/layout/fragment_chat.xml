@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_green"
+    android:background="@drawable/background_gradiant"
     tools:context=".ChatFragment">
 
     <androidx.core.widget.NestedScrollView
@@ -33,7 +33,7 @@
         <View
             android:id="@+id/view"
             android:layout_width="0dp"
-            android:layout_height="2dp"
+            android:layout_height="0dp"
             android:background="#000000"
             app:layout_constraintBottom_toTopOf="@+id/layout_chattingArea"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -50,8 +50,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
+                android:layout_marginLeft="14dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:background="@color/white"
                 app:boxStrokeColor="@color/white"
@@ -61,7 +61,7 @@
                     android:id="@+id/editText_chattingArea"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="Enter message"
+                    android:hint="여기에 메세지를 입력해"
                     android:background="#DAF6E1"
                     android:maxLines="6" />
             </com.google.android.material.textfield.TextInputLayout>
