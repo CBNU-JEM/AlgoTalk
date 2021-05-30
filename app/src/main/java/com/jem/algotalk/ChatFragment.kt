@@ -72,7 +72,8 @@ class ChatFragment : Fragment() {
         editText.setOnKeyListener { vieww, keyCode, event ->
             if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 val msg: String = editText.text.toString().trim()
-                sendMessage(view, msg)
+                if(msg != "")
+                    sendMessage(view, msg)
                 return@setOnKeyListener true
             }
             false
@@ -83,8 +84,8 @@ class ChatFragment : Fragment() {
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
             val msg: String = editText.text.toString().trim()
-
-            sendMessage(view, msg)
+            if(msg != "")
+                sendMessage(view, msg)
         }
 
         return view
