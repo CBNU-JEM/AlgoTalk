@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -41,32 +42,42 @@ class BookmarkFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_bookmark, container, false);
+        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_layout)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        val startTime= System.currentTimeMillis()
-        Log.i("tab click start", startTime.toString())
-        this.inflater=inflater
+        this.inflater = inflater
         if (container != null) {
-            this.container=container
+            this.container = container
+        }
+
+        val startTime = System.currentTimeMillis()
+        Log.i("tab click start", startTime.toString())
+        this.inflater = inflater
+        if (container != null) {
+            this.container = container
         }
 
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
-        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
-        for (i in 0 until bookmark.size){
-            val date = Date(System.currentTimeMillis())
-            if(bookmark[i].content == "none")
-                showImageView(bookmark[i].img_uri, date.toString(), view)
-            else
-                showTextView(bookmark[i].content, date.toString(), view)
+        swipeRefreshLayout.setOnRefreshListener {
+            val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
+            for (i in 0 until bookmark.size) {
+                val date = Date(System.currentTimeMillis())
+                if (bookmark[i].content == "none")
+                    showImageView(bookmark[i].img_uri, date.toString(), view)
+                else
+                    showTextView(bookmark[i].content, date.toString(), view)
+            }
+            Log.i("sangeun", "북마크 뷰 create")
+
+            swipeRefreshLayout.isRefreshing = false
         }
 
-
-        val endTime= System.currentTimeMillis()
-        Log.i("tab click end",  endTime.toString())
-        Log.i("tab click end",  (endTime-startTime).toString())
+        val endTime = System.currentTimeMillis()
+        Log.i("tab click end", endTime.toString())
+        Log.i("tab click end", (endTime - startTime).toString())
 
         return view
     }
