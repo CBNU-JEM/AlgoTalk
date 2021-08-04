@@ -12,29 +12,47 @@ import java.util.*
 object FeedReaderContract {
     // Table contents are grouped together in an anonymous object.
     object FeedEntry : BaseColumns {
-        const val TABLE_NAME = "Bookmarks"
+        const val BOOKMARK_TABLE_NAME = "Bookmarks"
         const val COLUMN_CONTENT = "content"
         const val COLUMN_IMAGE = "image"
+        const val USER_TABLE_NAME = "User"
+        const val COLUMN_USERNAME = "username"
+        const val COLUMN_USERLEVEL = "userlevel"
     }
 }
 
-private const val SQL_CREATE_ENTRIES =
-    "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
+private const val SQL_CREATE_ENTRIES_1 =
+    "CREATE TABLE ${FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME} (" +
             "${BaseColumns._ID} INTEGER PRIMARY KEY," +
             "${FeedReaderContract.FeedEntry.COLUMN_CONTENT} TEXT," +
             "${FeedReaderContract.FeedEntry.COLUMN_IMAGE} TEXT)"
 
-private const val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.TABLE_NAME}"
+private const val SQL_CREATE_ENTRIES_2 =
+    "CREATE TABLE ${FeedReaderContract.FeedEntry.USER_TABLE_NAME} (" +
+            "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+            "${FeedReaderContract.FeedEntry.COLUMN_USERNAME} TEXT," +
+            "${FeedReaderContract.FeedEntry.COLUMN_USERLEVEL} TEXT)"
+
+private const val SQL_DELETE_ENTRIES_1 = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME}"
+private const val SQL_DELETE_ENTRIES_2 = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.USER_TABLE_NAME}"
+
+private const val SQL_INITIALIZE_USER =
+    "INSERT INTO ${FeedReaderContract.FeedEntry.USER_TABLE_NAME} VALUES (" +
+            "\"코린이\"," +
+            "\"브론즈Ⅰ\")"
 
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(SQL_CREATE_ENTRIES)
+        db.execSQL(SQL_CREATE_ENTRIES_1)
+        db.execSQL(SQL_CREATE_ENTRIES_2)
+        db.execSQL(SQL_INITIALIZE_USER)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
-        db.execSQL(SQL_DELETE_ENTRIES)
+        db.execSQL(SQL_DELETE_ENTRIES_1)
+        db.execSQL(SQL_DELETE_ENTRIES_2)
         onCreate(db)
     }
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -44,6 +62,67 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         // If you change the database schema, you must increment the database version.
         const val DATABASE_VERSION = 1
         const val DATABASE_NAME = "Algotalk.db"
+    }
+
+    fun readUser(view: View): User{
+        val database = this.readableDatabase
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_USERNAME, FeedReaderContract.FeedEntry.COLUMN_USERLEVEL)
+
+        val cursor = database.query(
+            FeedReaderContract.FeedEntry.USER_TABLE_NAME,   // The table to query
+            projection,             // The array of columns to return (pass null to get all)
+            null,              // The columns for the WHERE clause
+            null,          // The values for the WHERE clause
+            null,                   // don't group the rows
+            null,                   // don't filter by row groups
+            null               // The sort order
+        )
+
+        val user = User()
+
+        if(cursor.moveToFirst()){
+            do {
+                Log.i("sangeun", cursor.getString(cursor.getColumnIndex("username")))
+                user.name = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERNAME))
+                user.level = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERLEVEL))
+            }while (cursor.moveToNext())
+        }
+//        Toast.makeText(context,"There is no data.", Toast.LENGTH_LONG).show()
+
+        return user
+    }
+
+    fun updateUserName(old_user: User, new_user: User){
+        // Gets the data repository in write mode
+        val database = this.writableDatabase
+
+        // New value for one column
+        val values = ContentValues().apply {
+            put(FeedReaderContract.FeedEntry.COLUMN_USERNAME, new_user.name)
+        }
+
+        // Which row to update, based on the title
+        val selection = "${FeedReaderContract.FeedEntry.COLUMN_USERNAME} LIKE ?"
+        val selectionArgs = arrayOf(old_user.name)
+        val count = database.update(FeedReaderContract.FeedEntry.USER_TABLE_NAME, values, selection, selectionArgs)
+    }
+
+    fun updateUserLevel(old_user: User, new_user: User){
+        // Gets the data repository in write mode
+        val database = this.writableDatabase
+
+        // New value for one column
+        val values = ContentValues().apply {
+            put(FeedReaderContract.FeedEntry.COLUMN_USERLEVEL, new_user.level)
+        }
+
+        // Which row to update, based on the title
+        val selection = "${FeedReaderContract.FeedEntry.COLUMN_USERLEVEL} LIKE ?"
+        val selectionArgs = arrayOf(old_user.level)
+        val count = database.update(FeedReaderContract.FeedEntry.USER_TABLE_NAME, values, selection, selectionArgs)
     }
 
     fun insertBookmark(bookmark: Bookmark){
@@ -59,7 +138,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         }
 
         // Insert the new row, returning the primary key value of the new row
-        val newRowId = database?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+        val newRowId = database?.insert(FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME, null, values)
 
         val endTime= System.currentTimeMillis()
         Log.i("end bookmark click", endTime.toString())
@@ -99,7 +178,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 //        )
 
         val cursor = database.query(
-            FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
+            FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME,   // The table to query
             projection,             // The array of columns to return (pass null to get all)
             null,              // The columns for the WHERE clause
             null,          // The values for the WHERE clause
@@ -136,7 +215,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             var selectionArgs = arrayOf(bookmark.img_uri)
 
             // Issue SQL statement.
-            val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+            val deletedRows = database.delete(FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME, selection, selectionArgs)
             Log.i("delete_image_row", deletedRows.toString())
         }
         else{
@@ -147,7 +226,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
             var selectionArgs = arrayOf(bookmark.content)
 
             // Issue SQL statement.
-            val deletedRows = database.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+            val deletedRows = database.delete(FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME, selection, selectionArgs)
             Log.i("delete_content_row", deletedRows.toString())
         }
     }
@@ -158,7 +237,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         val projection = arrayOf(BaseColumns._ID, FeedReaderContract.FeedEntry.COLUMN_CONTENT, FeedReaderContract.FeedEntry.COLUMN_IMAGE)
 
         val cursor = database.query(
-            FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
+            FeedReaderContract.FeedEntry.BOOKMARK_TABLE_NAME,   // The table to query
             projection,             // The array of columns to return (pass null to get all)
             null,              // The columns for the WHERE clause
             null,          // The values for the WHERE clause

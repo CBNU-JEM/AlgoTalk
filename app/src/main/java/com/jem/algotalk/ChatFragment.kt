@@ -1,6 +1,7 @@
 package com.jem.algotalk
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -46,6 +47,7 @@ class ChatFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var editText: EditText
     private lateinit var sendButton: FloatingActionButton
+    private lateinit var popupButton: Button
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
@@ -83,13 +85,40 @@ class ChatFragment : Fragment() {
             false
         }
 
-
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
             val msg: String = editText.text.toString().trim()
             if (msg != "")
                 sendMessage(view, msg, msg)
+        }
+
+        popupButton = view.findViewById(R.id.show_user_level_popup)
+        popupButton.setOnClickListener {
+            val mDialogView = LayoutInflater.from(getActivity()).inflate(R.layout.set_user, null)
+            val mBuilder = AlertDialog.Builder(getActivity())
+                .setView(mDialogView)
+                .setTitle("너의 수준을 알려줘.")
+
+            val  mAlertDialog = mBuilder.show()
+
+            val spinner_level = mDialogView.findViewById<Spinner>(R.id.spinner_level)
+
+            val level = resources.getStringArray(R.array.level)
+            val adapter = getActivity()?.let { it1 -> ArrayAdapter(it1, android.R.layout.simple_spinner_item, level) }
+            spinner_level.adapter = adapter
+
+            val okButton = mDialogView.findViewById<Button>(R.id.edit_user_level_confirm_Button)
+            okButton.setOnClickListener {
+
+                Toast.makeText(getActivity(), "토스트 메시지", Toast.LENGTH_SHORT).show()
+            }
+
+            val noButton = mDialogView.findViewById<Button>(R.id.close_popup_Button)
+            noButton.setOnClickListener {
+                mAlertDialog.dismiss()
+            }
+
         }
 
         return view
