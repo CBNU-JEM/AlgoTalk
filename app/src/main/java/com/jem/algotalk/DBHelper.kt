@@ -38,8 +38,9 @@ private const val SQL_DELETE_ENTRIES_2 = "DROP TABLE IF EXISTS ${FeedReaderContr
 
 private const val SQL_INITIALIZE_USER =
     "INSERT INTO ${FeedReaderContract.FeedEntry.USER_TABLE_NAME} VALUES (" +
+            "0," +
             "\"코린이\"," +
-            "\"브론즈Ⅰ\")"
+            "\"0\")"
 
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -86,6 +87,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         if(cursor.moveToFirst()){
             do {
                 Log.i("sangeun", cursor.getString(cursor.getColumnIndex("username")))
+                Log.i("sangeun", cursor.getString(cursor.getColumnIndex("userlevel")))
                 user.name = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERNAME))
                 user.level = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERLEVEL))
             }while (cursor.moveToNext())

@@ -51,6 +51,9 @@ class ChatFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+    private lateinit var editUserName: EditText
+    private lateinit var spinner_level: Spinner
+
     var endTime1 =System.currentTimeMillis()
     var startTime1=System.currentTimeMillis()
 
@@ -102,16 +105,32 @@ class ChatFragment : Fragment() {
 
             val  mAlertDialog = mBuilder.show()
 
-            val spinner_level = mDialogView.findViewById<Spinner>(R.id.spinner_level)
+            dbHelper = FeedReaderDbHelper(requireContext())
+
+            var old_user = User()
+            var new_user = User()
+
+            old_user = dbHelper.readUser(view)
+
+            editUserName = mDialogView.findViewById<EditText>(R.id.edit_user_name)
+            spinner_level = mDialogView.findViewById<Spinner>(R.id.spinner_level)
+
+            editUserName.setText(old_user.name)
+            spinner_level.setSelection(old_user.level.toInt(), true)
 
             val level = resources.getStringArray(R.array.level)
             val adapter = getActivity()?.let { it1 -> ArrayAdapter(it1, android.R.layout.simple_spinner_item, level) }
             spinner_level.adapter = adapter
+//            spinner_level.setAdapter(adapter)
 
             val okButton = mDialogView.findViewById<Button>(R.id.edit_user_level_confirm_Button)
             okButton.setOnClickListener {
-
-                Toast.makeText(getActivity(), "토스트 메시지", Toast.LENGTH_SHORT).show()
+                new_user.name = editUserName.getText().toString()
+                new_user.level = spinner_level.getSelectedItemId().toString()
+                dbHelper.updateUserName(old_user, new_user)
+                dbHelper.updateUserLevel(old_user, new_user)
+                Toast.makeText(getActivity(), "변경 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                mAlertDialog.dismiss()
             }
 
             val noButton = mDialogView.findViewById<Button>(R.id.close_popup_Button)
