@@ -11,4 +11,6 @@
     <color name="light_green">#c9f3be</color>
 
     <color name="colorAccent">#99BEF3B1</color>
+
+    <color name="transparent">#00FF0000</color>
 </resources>

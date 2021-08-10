@@ -1,6 +1,7 @@
 package com.jem.algotalk
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -46,9 +47,13 @@ class ChatFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var editText: EditText
     private lateinit var sendButton: FloatingActionButton
+    private lateinit var popupButton: ImageButton
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+    private lateinit var editUserName: EditText
+    private lateinit var spinner_level: Spinner
+
     var endTime1 =System.currentTimeMillis()
     var startTime1=System.currentTimeMillis()
 
@@ -83,13 +88,56 @@ class ChatFragment : Fragment() {
             false
         }
 
-
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
             val msg: String = editText.text.toString().trim()
             if (msg != "")
                 sendMessage(view, msg, msg)
+        }
+
+        popupButton = view.findViewById(R.id.show_user_level_popup)
+        popupButton.setOnClickListener {
+            val mDialogView = LayoutInflater.from(getActivity()).inflate(R.layout.set_user, null)
+            val mBuilder = AlertDialog.Builder(getActivity())
+                .setView(mDialogView)
+                .setTitle("너의 코딩실력을 알려줘 😀")
+
+            val  mAlertDialog = mBuilder.show()
+
+            dbHelper = FeedReaderDbHelper(requireContext())
+
+            var old_user = User()
+            var new_user = User()
+
+            old_user = dbHelper.readUser(view)
+
+            editUserName = mDialogView.findViewById<EditText>(R.id.edit_user_name)
+            spinner_level = mDialogView.findViewById<Spinner>(R.id.spinner_level)
+
+            editUserName.setText(old_user.name)
+
+            val level = resources.getStringArray(R.array.level)
+            val adapter = getActivity()?.let { it1 -> ArrayAdapter(it1, android.R.layout.simple_spinner_item, level) }
+            spinner_level.adapter = adapter
+            //            spinner_level.setAdapter(adapter)
+            spinner_level.setSelection(old_user.level.toInt(), true)
+
+            val okButton = mDialogView.findViewById<Button>(R.id.edit_user_level_confirm_Button)
+            okButton.setOnClickListener {
+                new_user.name = editUserName.getText().toString()
+                new_user.level = spinner_level.getSelectedItemId().toString()
+                dbHelper.updateUserName(old_user, new_user)
+                dbHelper.updateUserLevel(old_user, new_user)
+                Toast.makeText(getActivity(), "변경 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                mAlertDialog.dismiss()
+            }
+
+            val noButton = mDialogView.findViewById<Button>(R.id.close_popup_Button)
+            noButton.setOnClickListener {
+                mAlertDialog.dismiss()
+            }
+
         }
 
         return view
@@ -112,8 +160,8 @@ class ChatFragment : Fragment() {
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
-//            .baseUrl("http://192.168.0.7:5005/webhooks/rest/")
+            .baseUrl("http://algotalk.kro.kr:5005/webhooks/rest/")
+//            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
