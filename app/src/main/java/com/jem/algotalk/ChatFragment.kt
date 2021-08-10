@@ -47,7 +47,7 @@ class ChatFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var editText: EditText
     private lateinit var sendButton: FloatingActionButton
-    private lateinit var popupButton: Button
+    private lateinit var popupButton: ImageButton
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
@@ -160,8 +160,8 @@ class ChatFragment : Fragment() {
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = OkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
-//            .baseUrl("http://192.168.0.7:5005/webhooks/rest/")
+            .baseUrl("http://algotalk.kro.kr:5005/webhooks/rest/")
+//            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
