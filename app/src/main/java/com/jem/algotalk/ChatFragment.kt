@@ -101,7 +101,7 @@ class ChatFragment : Fragment() {
             val mDialogView = LayoutInflater.from(getActivity()).inflate(R.layout.set_user, null)
             val mBuilder = AlertDialog.Builder(getActivity())
                 .setView(mDialogView)
-                .setTitle("너의 수준을 알려줘.")
+                .setTitle("너의 코딩실력을 알려줘 😀")
 
             val  mAlertDialog = mBuilder.show()
 
@@ -116,12 +116,12 @@ class ChatFragment : Fragment() {
             spinner_level = mDialogView.findViewById<Spinner>(R.id.spinner_level)
 
             editUserName.setText(old_user.name)
-            spinner_level.setSelection(old_user.level.toInt(), true)
 
             val level = resources.getStringArray(R.array.level)
             val adapter = getActivity()?.let { it1 -> ArrayAdapter(it1, android.R.layout.simple_spinner_item, level) }
             spinner_level.adapter = adapter
-//            spinner_level.setAdapter(adapter)
+            //            spinner_level.setAdapter(adapter)
+            spinner_level.setSelection(old_user.level.toInt(), true)
 
             val okButton = mDialogView.findViewById<Button>(R.id.edit_user_level_confirm_Button)
             okButton.setOnClickListener {
