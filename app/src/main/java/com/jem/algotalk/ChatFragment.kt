@@ -173,7 +173,7 @@ class ChatFragment : Fragment() {
         if (message.trim().isEmpty())
             Toast.makeText(getActivity(), "쿼리를 확인해줘", Toast.LENGTH_SHORT).show()
         else {
-            Log.e("Msg", "msssage: $message" + user_info.level)
+            Log.e("Msg", user_info.name + " msssage: $message " + user_info.level)
             editText.setText("")
             userMessage.UserMessage(user_info.name, message, user_info.level.toInt())
             if (printMessage.isNotEmpty())
