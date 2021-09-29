@@ -1,26 +1,27 @@
 package com.jem.algotalk
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
-import android.view.KeyEvent.KEYCODE_ENTER
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import okhttp3.OkHttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -28,8 +29,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.properties.Delegates
-
 
 /**
  * A simple [Fragment] subclass.
@@ -43,34 +42,33 @@ class ChatFragment : Fragment() {
     private val USER = 0
     private val BOT = 1
 
-    private lateinit var viewPagerAdapter: ViewPagerAdapter
-    private lateinit var viewPager: ViewPager2
+    //private lateinit var viewPagerAdapter: ViewPagerAdapter
+    //private lateinit var viewPager: ViewPager2
     private lateinit var editText: EditText
     private lateinit var sendButton: FloatingActionButton
     private lateinit var popupButton: ImageButton
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
+
     private lateinit var editUserName: EditText
     private lateinit var spinner_level: Spinner
 
     var endTime1 =System.currentTimeMillis()
     var startTime1=System.currentTimeMillis()
 
-
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper: FeedReaderDbHelper
-    private lateinit var btnRecyclerView: RecyclerView
+    //private lateinit var btnRecyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_chat, container, false);
+        val view = inflater.inflate(R.layout.fragment_chat, container, false)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
-
 
         this.inflater = inflater
         if (container != null) {
@@ -143,10 +141,6 @@ class ChatFragment : Fragment() {
         return view
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-    }
-
     override fun onDestroy() {
         dbHelper.close()
         super.onDestroy()
@@ -162,11 +156,11 @@ class ChatFragment : Fragment() {
         Log.i("server response start",  startTime.toString())
         val date = Date(System.currentTimeMillis())
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
-        val okHttpClient = OkHttpClient()
+        val okHttpClient = HttpsClient().unSafeOkHttpClient()
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://algotalk.kro.kr:5005/webhooks/rest/")
-//            .baseUrl("https://algotalk.kro.kr/rasa/webhooks/rest/")
-            .client(okHttpClient)
+            .baseUrl("https://algotalk.kro.kr/webhooks/rest/")
+//            .baseUrl("http://192.168.0.7:5005/webhooks/rest/")
+            .client(okHttpClient.build())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val userMessage = UserMessage()
@@ -184,6 +178,7 @@ class ChatFragment : Fragment() {
         val messageSender = retrofit.create(MessageSender::class.java)
         val response =
             messageSender.sendMessage(userMessage)
+        val url = UrlData
 
         response.enqueue(object : Callback<List<BotResponse>> {
             override fun onResponse(
@@ -191,10 +186,10 @@ class ChatFragment : Fragment() {
                 response: Response<List<BotResponse>>
             ) {
 
-                val endTime= System.currentTimeMillis()
-                Log.i("server response end",  endTime.toString())
-                Log.i("response time(ms)",  (endTime-startTime).toString())
-                if (response.body() == null || response.body()!!.size == 0) {
+                val endTime = System.currentTimeMillis()
+                Log.i("server response end", endTime.toString())
+                Log.i("response time(ms)", (endTime - startTime).toString())
+                if (response.body() == null || response.body()!!.isEmpty()) {
                     val botMessage = "미안.. 무슨말인지 이해하지 못 하겠어 \uD83D\uDE05"
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
@@ -202,6 +197,14 @@ class ChatFragment : Fragment() {
                         //Log.e("text c", "${botResponse.text}")
                         if (botResponse.text != null) {
                             showTextView(botResponse.text, BOT, date.toString(), view)
+                            if (url.extractUrlFromText(botResponse.text)) {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val ogTags = url.getMetadataFromUrl()
+                                    showOpenGraphView(url.metadata, BOT, date.toString(), view)
+                                }
+//                                url.getMetadataFromUrl()
+                            }
+                            //url 확인 후 크롤링을 통해 메타데이터 구분
                         }
                         //Log.e("image c", "${botResponse.image}")
                         if (botResponse.image != null) {
@@ -214,9 +217,9 @@ class ChatFragment : Fragment() {
                     }
                 }
 
-                endTime1= System.currentTimeMillis()
-                Log.i("message print end",  endTime1.toString())
-                Log.i("print time(ms)",  (endTime1-startTime1).toString())
+                endTime1 = System.currentTimeMillis()
+                Log.i("message print end", endTime1.toString())
+                Log.i("print time(ms)", (endTime1 - startTime1).toString())
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
@@ -228,24 +231,24 @@ class ChatFragment : Fragment() {
         })
     }
 
+
     fun showTextView(message: String, type: Int, date: String, view: View) {
-        var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
-        when (type) {
+        val frameLayout: FrameLayout? = when (type) {
             USER -> {
-                frameLayout = getUserLayout()
+                getUserLayout()
             }
             BOT -> {
-                frameLayout = getBotLayout()
+                getBotLayout()
             }
             else -> {
-                frameLayout = getBotLayout()
+                getBotLayout()
             }
         }
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
-        messageTextView?.setText(message)
+        messageTextView?.text = message
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
@@ -265,7 +268,7 @@ class ChatFragment : Fragment() {
         if (bookmark_flag == 1)
             bookmarkbutton?.isChecked = true
 
-        bookmarkbutton?.setOnClickListener { view ->
+        bookmarkbutton?.setOnClickListener {
             if (bookmarkbutton.isChecked)
                 dbHelper.insertBookmark(bookmark)
             else
@@ -274,26 +277,26 @@ class ChatFragment : Fragment() {
 
         val currentDateTime = Date(System.currentTimeMillis())
         val dateNew = Date(date)
-        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
         val currentDate = dateFormat.format(currentDateTime)
         val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if (currentDate.equals(providedDate)) {
+        var time: String
+        time = if (currentDate == providedDate) {
             val timeFormat = SimpleDateFormat(
                 "hh:mm aa",
                 Locale.ENGLISH
             )
-            time = timeFormat.format(dateNew)
+            timeFormat.format(dateNew)
         } else {
             val dateTimeFormat = SimpleDateFormat(
                 "dd-MM-yy hh:mm aa",
                 Locale.ENGLISH
             )
-            time = dateTimeFormat.format(dateNew)
+            dateTimeFormat.format(dateNew)
         }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
 
-        timeTextView?.setText(time.toString())
+        timeTextView?.text = time
     }
 
 
@@ -315,7 +318,7 @@ class ChatFragment : Fragment() {
         linearLayout.addView(frameLayout)
         val messageImageView = frameLayout?.findViewById<ImageView>(R.id.chat_image_message)
 
-        Glide.with(this).load(message).into(messageImageView!!);
+        Glide.with(this).load(message).into(messageImageView!!)
 
         frameLayout?.requestFocus()
         editText.requestFocus()
@@ -348,36 +351,36 @@ class ChatFragment : Fragment() {
         val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
         val currentDate = dateFormat.format(currentDateTime)
         val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if (currentDate.equals(providedDate)) {
+        var time: String
+        time = if (currentDate == providedDate) {
             val timeFormat = SimpleDateFormat(
                 "hh:mm aa",
                 Locale.ENGLISH
             )
-            time = timeFormat.format(dateNew)
+            timeFormat.format(dateNew)
         } else {
             val dateTimeFormat = SimpleDateFormat(
                 "dd-MM-yy hh:mm aa",
                 Locale.ENGLISH
             )
-            time = dateTimeFormat.format(dateNew)
+            dateTimeFormat.format(dateNew)
         }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.text = time.toString()
     }
 
     fun showButtonView(buttons: List<BotResponse.Buttons>, type: Int, view: View) {
         var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
-        when (type) {
+        frameLayout = when (type) {
             USER -> {
-                frameLayout = getUserLayout()
+                getUserLayout()
             }
             BOT -> {
-                frameLayout = getBotLayout("button")
+                getBotLayout("button")
             }
             else -> {
-                frameLayout = getBotLayout("button")
+                getBotLayout("button")
             }
         }
         frameLayout?.isFocusableInTouchMode = true
@@ -393,7 +396,80 @@ class ChatFragment : Fragment() {
         recyclerView?.adapter = buttonRecyclerView
     }
 
-    inner class ButtonRecyclerView(var buttons: List<BotResponse.Buttons>) :
+//    fun showOpenGraphView(message: String, type: Int, date: String, view: View) {
+//        var frameLayout: FrameLayout? = null
+//        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+//        frameLayout = when (type) {
+//            USER -> {
+//                getUserLayout()
+//            }
+//            BOT -> {
+//                getBotLayout("openGraph")
+//            }
+//            else -> {
+//                getBotLayout()
+//            }
+//        }
+//        frameLayout?.isFocusableInTouchMode = true
+//        linearLayout.addView(frameLayout)
+//
+//        //레이아웃 클릭시 앱브라우저로 url 실행
+//        linearLayout.setOnClickListener {
+//            val i = Intent(Intent.ACTION_VIEW)
+//            i.data = Uri.parse(message.url)
+//            startActivity(i)
+//        }
+//        //이미지 출력
+//        val messageOpenGraphView =
+//            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+//        Glide.with(this).load(message.imageUrl).into(messageOpenGraphView!!);
+//        //타이틀+설명 출력
+//        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+//        messageTextView?.text = message.title + '\n' + message.description
+//
+//
+//        frameLayout?.requestFocus()
+//        editText.requestFocus()
+//    }
+    fun showOpenGraphView(message: Metadata, type: Int, date: String, view: View) {
+        var frameLayout: FrameLayout? = null
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        frameLayout = when (type) {
+            USER -> {
+                getUserLayout()
+            }
+            BOT -> {
+                getBotLayout("openGraph")
+            }
+            else -> {
+                getBotLayout()
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        //레이아웃 클릭시 앱브라우저로 url 실행
+        linearLayout.setOnClickListener {
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(message.url)
+            startActivity(i)
+        }
+        //이미지 출력
+        val imageViewWidth = frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+        val messageOpenGraphView =
+            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+    if (imageViewWidth != null) {
+        Glide.with(this).load(message.imageUrl).override(imageViewWidth.width,imageViewWidth.width).into(messageOpenGraphView!!)
+    };
+        //타이틀+설명 출력
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+        messageTextView?.text = message.title + '\n' + message.url
+
+
+        frameLayout?.requestFocus()
+        editText.requestFocus()
+    }
+
+    inner class ButtonRecyclerView(private var buttons: List<BotResponse.Buttons>) :
         RecyclerView.Adapter<ButtonRecyclerView.ButtonViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ButtonViewHolder {
             val view =
@@ -402,38 +478,39 @@ class ChatFragment : Fragment() {
 
         }
 
+
         override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
-            val payload_button = buttons[position]
-            holder.button.text = payload_button.title
+            val payloadButton = buttons[position]
+            holder.button.text = payloadButton.title
             holder.button.setOnClickListener {
 
-                startTime1= System.currentTimeMillis()
-                Log.i("message print start",  startTime1.toString())
-                view?.let { it1 -> sendMessage(it1, payload_button.payload, payload_button.title) }
+                startTime1 = System.currentTimeMillis()
+                Log.i("message print start", startTime1.toString())
+                view?.let { it1 -> sendMessage(it1, payloadButton.payload, payloadButton.title) }
             }
         }
 
         override fun getItemCount(): Int {
-            buttons.isEmpty() ?: return -1
+            buttons.isEmpty()
             return buttons.size
         }
 
         inner class ButtonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val button = view.findViewById<MaterialButton>(R.id.payload_button)
+            val button: MaterialButton = view.findViewById<MaterialButton>(R.id.payload_button)
         }
     }
 
-    fun getUserLayout(): FrameLayout? {
+    private fun getUserLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.user_message_area, null) as FrameLayout?
     }
 
-    fun getBotLayout(): FrameLayout? {
+    private fun getBotLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
     }
 
-    fun getBotLayout(type: String): FrameLayout? {
+    private fun getBotLayout(type: String): FrameLayout? {
         when (type) {
             "image" -> {
                 val inflater = LayoutInflater.from(activity)
@@ -442,6 +519,10 @@ class ChatFragment : Fragment() {
             "button" -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_button_area, null) as FrameLayout?
+            }
+            "openGraph" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_opengraph_area, null) as FrameLayout?
             }
             else -> {
                 val inflater = LayoutInflater.from(activity)
