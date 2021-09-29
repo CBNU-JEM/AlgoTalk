@@ -2,36 +2,37 @@
 <resources>
 
     <string-array name="level">
-        <item>브론즈Ⅰ</item>
-        <item>브론즈Ⅱ</item>
-        <item>브론즈Ⅲ</item>
-        <item>브론즈Ⅳ</item>
+        <item>몰라요ㅜ</item>
         <item>브론즈Ⅴ</item>
-        <item>실버Ⅰ</item>
-        <item>실버Ⅱ</item>
-        <item>실버Ⅲ</item>
-        <item>실버Ⅳ</item>
+        <item>브론즈Ⅳ</item>
+        <item>브론즈Ⅲ</item>
+        <item>브론즈Ⅱ</item>
+        <item>브론즈Ⅰ</item>
         <item>실버Ⅴ</item>
-        <item>골드Ⅰ</item>
-        <item>골드Ⅱ</item>
-        <item>골드Ⅲ</item>
-        <item>골드Ⅳ</item>
+        <item>실버Ⅳ</item>
+        <item>실버Ⅲ</item>
+        <item>실버Ⅱ</item>
+        <item>실버Ⅰ</item>
         <item>골드Ⅴ</item>
-        <item>플래티넘Ⅰ</item>
-        <item>플래티넘Ⅱ</item>
-        <item>플래티넘Ⅲ</item>
-        <item>플래티넘Ⅳ</item>
-        <item>플래티넘Ⅴ</item>
-        <item>다이아Ⅰ</item>
-        <item>다이아Ⅱ</item>
-        <item>다이아Ⅲ</item>
-        <item>다이아Ⅳ</item>
+        <item>골드Ⅳ</item>
+        <item>골드Ⅲ</item>
+        <item>골드Ⅱ</item>
+        <item>골드Ⅰ</item>
+        <item>플레티넘Ⅴ</item>
+        <item>플레티넘Ⅳ</item>
+        <item>플레티넘Ⅲ</item>
+        <item>플레티넘Ⅱ</item>
+        <item>플레티넘Ⅰ</item>
         <item>다이아Ⅴ</item>
-        <item>루비Ⅰ</item>
-        <item>루비Ⅱ</item>
-        <item>루비Ⅲ</item>
-        <item>루비Ⅳ</item>
+        <item>다이아Ⅳ</item>
+        <item>다이아Ⅲ</item>
+        <item>다이아Ⅱ</item>
+        <item>다이아Ⅰ</item>
         <item>루비Ⅴ</item>
+        <item>루비Ⅳ</item>
+        <item>루비Ⅲ</item>
+        <item>루비Ⅱ</item>
+        <item>루비Ⅰ</item>
     </string-array>
 
 </resources>
