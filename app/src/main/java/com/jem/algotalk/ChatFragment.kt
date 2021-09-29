@@ -153,6 +153,10 @@ class ChatFragment : Fragment() {
     }
 
     fun sendMessage(view: View, message: String, printMessage: String) {
+        dbHelper = FeedReaderDbHelper(requireContext())
+        var user_info = User()
+        user_info = dbHelper.readUser(view)
+
         startTime1=System.currentTimeMillis()
         val startTime= System.currentTimeMillis()
         Log.i("server response start",  startTime.toString())
@@ -169,9 +173,9 @@ class ChatFragment : Fragment() {
         if (message.trim().isEmpty())
             Toast.makeText(getActivity(), "쿼리를 확인해줘", Toast.LENGTH_SHORT).show()
         else {
-            Log.e("Msg", "msssage: $message")
+            Log.e("Msg", user_info.name + " msssage: $message " + user_info.level)
             editText.setText("")
-            userMessage.UserMessage("User", message)
+            userMessage.UserMessage(user_info.name, message, user_info.level.toInt())
             if (printMessage.isNotEmpty())
                 showTextView(printMessage, USER, date.toString(), view)
             else
