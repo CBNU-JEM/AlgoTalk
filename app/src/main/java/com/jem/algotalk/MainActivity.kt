@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val tabLayoutTextArray = arrayOf("채팅","즐겨찾기")
-        val tabLayoutColorArray = arrayOf(R.color.light_green, R.color.light_green)
+        //val tabLayoutColorArray = arrayOf(R.color.light_green, R.color.light_green)
         //val tabLayoutIconArray = arrayOf(R.drawable.ic_view_list_48px,R.drawable.ic_info_48px)
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         val viewPager2 = findViewById<ViewPager2>(R.id.viewPager2)

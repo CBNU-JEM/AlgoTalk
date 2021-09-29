@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="4dp">
 
-    <ImageView
-        android:id="@+id/algobot_character"
-        android:layout_width="40dp"
-        android:layout_height="50dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:src="@drawable/algotalk_character" />
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        tools:ignore="UselessParent">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -38,10 +31,22 @@
                     android:layout_marginBottom="4dp"
                     android:background="@drawable/bot_chat"
                     android:gravity="start|center_vertical"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_marginStart="51dp"
+                    android:layout_marginEnd="6dp">
+                    <ImageView
+                        android:id="@+id/chat_open_graph_image_message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:maxWidth="280dp"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="4dp"
+                        android:padding="12dp"
+                        android:contentDescription="TODO" />
 
                     <TextView
-                        android:id="@+id/chat_message"
+                        android:id="@+id/chat_open_graph_message"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="start"
@@ -55,28 +60,7 @@
                         android:autoLink="web"
                         android:textColorLink="@color/blue"
                         tools:text="@tools:sample/full_names" />
-
-                    <TextView
-                        android:id="@+id/message_time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end|bottom"
-                        android:layout_margin="4dp"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        tools:text="@tools:sample/date/hhmm" />
-
                 </LinearLayout>
-
-                <CheckBox
-                    android:id="@+id/star_button"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginRight="6dp"
-                    android:layout_marginBottom="4dp"
-                    android:background="@drawable/btn_star"
-                    android:button="@null" />
 
 
             </LinearLayout>
