@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.app.AlertDialog
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -54,8 +53,8 @@ class ChatFragment : Fragment() {
     private lateinit var editUserName: EditText
     private lateinit var spinner_level: Spinner
 
-    var endTime1 =System.currentTimeMillis()
-    var startTime1=System.currentTimeMillis()
+    var endTime1 = System.currentTimeMillis()
+    var startTime1 = System.currentTimeMillis()
 
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper: FeedReaderDbHelper
@@ -101,7 +100,7 @@ class ChatFragment : Fragment() {
                 .setView(mDialogView)
                 .setTitle("너의 코딩실력을 알려줘 😀")
 
-            val  mAlertDialog = mBuilder.show()
+            val mAlertDialog = mBuilder.show()
 
             dbHelper = FeedReaderDbHelper(requireContext())
 
@@ -116,7 +115,13 @@ class ChatFragment : Fragment() {
             editUserName.setText(old_user.name)
 
             val level = resources.getStringArray(R.array.level)
-            val adapter = getActivity()?.let { it1 -> ArrayAdapter(it1, android.R.layout.simple_spinner_item, level) }
+            val adapter = getActivity()?.let { it1 ->
+                ArrayAdapter(
+                    it1,
+                    android.R.layout.simple_spinner_item,
+                    level
+                )
+            }
             spinner_level.adapter = adapter
             //            spinner_level.setAdapter(adapter)
             spinner_level.setSelection(old_user.level.toInt(), true)
@@ -151,9 +156,9 @@ class ChatFragment : Fragment() {
         var user_info = User()
         user_info = dbHelper.readUser(view)
 
-        startTime1=System.currentTimeMillis()
-        val startTime= System.currentTimeMillis()
-        Log.i("server response start",  startTime.toString())
+        startTime1 = System.currentTimeMillis()
+//        val startTime= System.currentTimeMillis()
+//        Log.i("server response start",  startTime.toString())
         val date = Date(System.currentTimeMillis())
         //rasa run -m models --enable-api --endpoints endpoints.yml 서버 실행 코드
         val okHttpClient = HttpsClient().unSafeOkHttpClient()
@@ -178,7 +183,6 @@ class ChatFragment : Fragment() {
         val messageSender = retrofit.create(MessageSender::class.java)
         val response =
             messageSender.sendMessage(userMessage)
-        val url = UrlData
 
         response.enqueue(object : Callback<List<BotResponse>> {
             override fun onResponse(
@@ -187,39 +191,28 @@ class ChatFragment : Fragment() {
             ) {
 
                 val endTime = System.currentTimeMillis()
-                Log.i("server response end", endTime.toString())
-                Log.i("response time(ms)", (endTime - startTime).toString())
+//                Log.i("server response end", endTime.toString())
+//                Log.i("response time(ms)", (endTime - startTime).toString())
                 if (response.body() == null || response.body()!!.isEmpty()) {
                     val botMessage = "미안.. 무슨말인지 이해하지 못 하겠어 \uD83D\uDE05"
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
-                        //Log.e("text c", "${botResponse.text}")
                         if (botResponse.text != null) {
                             showTextView(botResponse.text, BOT, date.toString(), view)
-                            if (url.extractUrlFromText(botResponse.text)) {
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    val ogTags = url.getMetadataFromUrl()
-                                    showOpenGraphView(url.metadata, BOT, date.toString(), view)
-                                }
-//                                url.getMetadataFromUrl()
-                            }
-                            //url 확인 후 크롤링을 통해 메타데이터 구분
                         }
-                        //Log.e("image c", "${botResponse.image}")
                         if (botResponse.image != null) {
                             showImageView(botResponse.image, BOT, date.toString(), view)
                         }
                         if (botResponse.buttons != null) {
                             showButtonView(botResponse.buttons, BOT, view)
-                            Log.e("Button c", "${botResponse.buttons.size}")
                         }
                     }
                 }
 
                 endTime1 = System.currentTimeMillis()
-                Log.i("message print end", endTime1.toString())
-                Log.i("print time(ms)", (endTime1 - startTime1).toString())
+//                Log.i("message print end", endTime1.toString())
+//                Log.i("print time(ms)", (endTime1 - startTime1).toString())
             }
 
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
@@ -252,29 +245,55 @@ class ChatFragment : Fragment() {
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
-
-        //Log.i("sangeun", "메세지 출력 확인")
+        //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-
         val bookmark = Bookmark()
         bookmark.content = message
         bookmark.img_uri = "none"
-
-        //Log.i("sangeun_con", bookmark.content.toString())
-        //Log.i("sangeun_img", bookmark.img_uri.toString())
-
         val bookmark_flag = dbHelper.isAlready(bookmark)
 
         if (bookmark_flag == 1)
             bookmarkbutton?.isChecked = true
-
         bookmarkbutton?.setOnClickListener {
             if (bookmarkbutton.isChecked)
                 dbHelper.insertBookmark(bookmark)
             else
                 dbHelper.deleteBookmark(bookmark)
         }
-
+        //open graph
+        val url = UrlData
+        if (url.extractUrlFromText(message)) {
+            CoroutineScope(Dispatchers.Main).launch {
+                //url 확인 후 크롤링을 통해 메타데이터 구분
+                url.getMetadataFromUrl()
+                val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
+                if (messageLayout != null) {
+                    showOpenGraphView(url.metadata, messageLayout, BOT, date.toString(), view)
+                }
+//                Log.i("url check", url.metadata.url)
+//                val openGraphLayout = view.findViewById<LinearLayout>(R.id.chat_open_graph_layout)
+//                //레이아웃 클릭시 앱브라우저로 url 실행
+//                openGraphLayout.setOnClickListener {
+//                    val i = Intent(Intent.ACTION_VIEW)
+//                    i.data = Uri.parse(url.metadata.url)
+//                    startActivity(i)
+//                }
+//                //이미지 출력  자르기 안되면 쪼그려
+//                val imageViewWidth = frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+//                val messageOpenGraphView =
+//                    frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+//                if (imageViewWidth != null) {
+//                   // Glide.with(this).load(url.metadata.imageUrl).override(imageViewWidth.width,imageViewWidth.width).into(messageOpenGraphView!!)
+//                }
+//                //타이틀+설명 출력
+//                val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+//                messageTextView?.text = url.metadata.title + '\n' + url.metadata.url
+            }
+        }
+//        if(url.isMetadata()){
+//
+//        }
+        //time
         val currentDateTime = Date(System.currentTimeMillis())
         val dateNew = Date(date)
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
@@ -396,44 +415,14 @@ class ChatFragment : Fragment() {
         recyclerView?.adapter = buttonRecyclerView
     }
 
-//    fun showOpenGraphView(message: String, type: Int, date: String, view: View) {
-//        var frameLayout: FrameLayout? = null
-//        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
-//        frameLayout = when (type) {
-//            USER -> {
-//                getUserLayout()
-//            }
-//            BOT -> {
-//                getBotLayout("openGraph")
-//            }
-//            else -> {
-//                getBotLayout()
-//            }
-//        }
-//        frameLayout?.isFocusableInTouchMode = true
-//        linearLayout.addView(frameLayout)
-//
-//        //레이아웃 클릭시 앱브라우저로 url 실행
-//        linearLayout.setOnClickListener {
-//            val i = Intent(Intent.ACTION_VIEW)
-//            i.data = Uri.parse(message.url)
-//            startActivity(i)
-//        }
-//        //이미지 출력
-//        val messageOpenGraphView =
-//            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
-//        Glide.with(this).load(message.imageUrl).into(messageOpenGraphView!!);
-//        //타이틀+설명 출력
-//        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
-//        messageTextView?.text = message.title + '\n' + message.description
-//
-//
-//        frameLayout?.requestFocus()
-//        editText.requestFocus()
-//    }
-    fun showOpenGraphView(message: Metadata, type: Int, date: String, view: View) {
+    fun showOpenGraphView(
+        message: Metadata,
+        messageLayout: LinearLayout,
+        type: Int,
+        date: String,
+        view: View
+    ) {
         var frameLayout: FrameLayout? = null
-        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         frameLayout = when (type) {
             USER -> {
                 getUserLayout()
@@ -445,28 +434,26 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-        frameLayout?.isFocusableInTouchMode = true
-        linearLayout.addView(frameLayout)
+        messageLayout.addView(frameLayout,1)
+        //이미지 출력
+
+        val messageOpenGraphView =
+            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+        if (messageOpenGraphView != null) {
+            Glide.with(this).load(message.imageUrl)
+                .override(800, 400).centerCrop().into(messageOpenGraphView!!)
+        }
+
+        //타이틀+설명 출력
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+        messageTextView?.text = message.title
+
         //레이아웃 클릭시 앱브라우저로 url 실행
-        linearLayout.setOnClickListener {
+        frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
             val i = Intent(Intent.ACTION_VIEW)
             i.data = Uri.parse(message.url)
             startActivity(i)
         }
-        //이미지 출력
-        val imageViewWidth = frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
-        val messageOpenGraphView =
-            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
-    if (imageViewWidth != null) {
-        Glide.with(this).load(message.imageUrl).override(imageViewWidth.width,imageViewWidth.width).into(messageOpenGraphView!!)
-    };
-        //타이틀+설명 출력
-        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
-        messageTextView?.text = message.title + '\n' + message.url
-
-
-        frameLayout?.requestFocus()
-        editText.requestFocus()
     }
 
     inner class ButtonRecyclerView(private var buttons: List<BotResponse.Buttons>) :
