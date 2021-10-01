@@ -27,19 +27,21 @@ object UrlData {
         return flag
 
     }
-
     suspend fun getMetadataFromUrl(): Metadata? = withContext(Dispatchers.IO){
         try {
             val doc = Jsoup.connect(url).get()
-            Log.e("metadate true", "doc")
             val imageUrl = doc.select("meta[property=og:image]")[0].attr("content")
-            val title = doc.select("meta[property=og:title]").first().attr("content")
-            val description = doc.select("meta[property=og:description]")[0].attr("content")
-            metadata.metadata(url, imageUrl, title, description)
-            Log.e("metadate", "${imageUrl}")
+            var title =doc.select("title").first().html()
+            var description = ""
+            try{
+                title = doc.select("meta[property=og:title]").first().attr("content")
+                description=doc.select("meta[property=og:description]")[0].attr("content")
+            }finally {
+                metadata.metadata(url, imageUrl, title, description)
+            }
             return@withContext metadata
         }catch(ex: Exception){
-            Log.e("ogerror", "${url}")
+            Log.e("ogerror", ex.toString())
             return@withContext metadata
         }
 
