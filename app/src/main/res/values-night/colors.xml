@@ -12,5 +12,6 @@
     <color name="botChat">#440C92</color>
     <color name="sendButton">#4A00AD</color>
     <color name="sendText">#2B0167</color>
+    <color name="text">#D4DAF7</color>
 
 </resources>

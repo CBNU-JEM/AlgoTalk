@@ -35,7 +35,7 @@
                 android:layout_marginTop="4dp"
                 android:adjustViewBounds="true"
                 android:padding="12dp"
-                android:textColor="@color/black"
+                android:textColor="@color/text"
                 android:textSize="16sp"
                 android:linksClickable="false"
                 android:autoLink="web"
