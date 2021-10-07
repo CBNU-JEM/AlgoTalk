@@ -11,7 +11,7 @@
         android:layout_height="50dp"
         app:tabGravity="fill"
         app:tabBackground="@drawable/tab_background"
-        app:tabIndicatorColor="@color/dark_green"
+        app:tabIndicatorColor="@color/background"
         app:tabMaxWidth="0dp"
         app:tabTextColor="@color/black" />
 

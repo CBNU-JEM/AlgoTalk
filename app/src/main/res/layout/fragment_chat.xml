@@ -42,7 +42,7 @@
             android:id="@+id/layout_chattingArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#DAF6E1"
+            android:background="@color/sendText"
             android:minHeight="48dp"
             android:orientation="horizontal">
 
@@ -65,8 +65,8 @@
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="5dp"
                 android:layout_weight="1"
-                android:background="@color/white"
-                app:boxStrokeColor="@color/dark_green"
+                android:background="@color/sendText"
+                app:boxStrokeColor="@color/sendButton"
                 android:maxLines="6">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -74,7 +74,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginBottom="4dp"
-                    android:background="#DAF6E1"
+                    android:background="@color/sendText"
                     android:maxLines="6" />
             </com.google.android.material.textfield.TextInputLayout>
 

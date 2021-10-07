@@ -4,14 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp">
     <Button
         android:id="@+id/payload_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/answer_button"
         android:text="Buttons"
+        app:backgroundTint="@color/sendButton"
         tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
