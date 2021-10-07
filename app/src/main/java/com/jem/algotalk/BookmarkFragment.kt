@@ -120,27 +120,8 @@ class BookmarkFragment : Fragment() {
                 dbHelper.insertBookmark(bookmark)
         }
 
-        val currentDateTime = Date(System.currentTimeMillis())
-        val dateNew = Date(date)
-        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
-        val currentDate = dateFormat.format(currentDateTime)
-        val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if(currentDate.equals(providedDate)) {
-            val timeFormat = SimpleDateFormat(
-                "hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = timeFormat.format(dateNew)
-        }else{
-            val dateTimeFormat = SimpleDateFormat(
-                "dd-MM-yy hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = dateTimeFormat.format(dateNew)
-        }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
     }
 
     fun showImageView(message: String, date: String, view: View) {
@@ -180,27 +161,8 @@ class BookmarkFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
 
-        val currentDateTime = Date(System.currentTimeMillis())
-        val dateNew = Date(date)
-        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
-        val currentDate = dateFormat.format(currentDateTime)
-        val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if(currentDate.equals(providedDate)) {
-            val timeFormat = SimpleDateFormat(
-                "hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = timeFormat.format(dateNew)
-        }else{
-            val dateTimeFormat = SimpleDateFormat(
-                "dd-MM-yy hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = dateTimeFormat.format(dateNew)
-        }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
     }
 
     fun getBotLayout(): FrameLayout? {
