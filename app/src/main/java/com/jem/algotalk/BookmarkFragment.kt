@@ -2,7 +2,9 @@ package com.jem.algotalk
 
 import android.app.Activity
 import android.content.ContentValues
+import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
+import android.net.Uri
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.util.Log
@@ -16,6 +18,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -70,7 +75,6 @@ class BookmarkFragment : Fragment() {
                 else
                     showTextView(bookmark[i].content, date.toString(), view)
             }
-            Log.i("sangeun", "북마크 뷰 create")
 
             swipeRefreshLayout.isRefreshing = false
         }
@@ -84,13 +88,11 @@ class BookmarkFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.i("sangeun", "onDestroyView")
     }
 
     override fun onDestroy() {
         dbHelper.close()
         super.onDestroy()
-        Log.i("sangeun", "onDestroy")
     }
 
     fun showTextView(message: String, date: String, view:View) {
@@ -116,6 +118,22 @@ class BookmarkFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
             else
                 dbHelper.insertBookmark(bookmark)
+        }
+
+        //open graph
+        val url = UrlData
+        if (url.extractUrlFromText(message)) {
+//            Log.i("sangeun", "url 파싱"+url.metadata.url)
+            CoroutineScope(Dispatchers.Main).launch {
+                //url 확인 후 크롤링을 통해 메타데이터 구분
+                url.getMetadataFromUrl()
+                Log.i("sangeun", "오픈그래프 "+url.metadata.title)
+                val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
+                if (messageLayout != null) {
+                    showOpenGraphView(url.metadata, messageLayout, date.toString(), view)
+                }
+            }
+            Log.i("sangeun", "오픈그래프 끝")
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
@@ -157,7 +175,6 @@ class BookmarkFragment : Fragment() {
 
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        Log.i("sangeun", "이미지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
 
         val bookmark = Bookmark()
@@ -201,6 +218,39 @@ class BookmarkFragment : Fragment() {
         timeTextView?.setText(time.toString())
     }
 
+    fun showOpenGraphView(
+        message: Metadata,
+        messageLayout: LinearLayout,
+        date: String,
+        view: View
+    ) {
+        var frameLayout: FrameLayout? = null
+        frameLayout = getBotLayout("openGraph")
+
+        Log.i("sangeun", "오픈그래프 출력")
+
+        messageLayout.addView(frameLayout,1)
+        //이미지 출력
+
+        val messageOpenGraphView =
+            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+        if (messageOpenGraphView != null) {
+            Glide.with(this).load(message.imageUrl)
+                .override(800, 400).centerCrop().into(messageOpenGraphView!!)
+        }
+
+        //타이틀+설명 출력
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+        messageTextView?.text = message.title
+
+        //레이아웃 클릭시 앱브라우저로 url 실행
+        frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(message.url)
+            startActivity(i)
+        }
+    }
+
     fun getBotLayout(): FrameLayout? {
         val inflater = LayoutInflater.from(activity)
         return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
@@ -211,6 +261,10 @@ class BookmarkFragment : Fragment() {
             "image" -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
+            }
+            "openGraph" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_opengraph_area, null) as FrameLayout?
             }
             else -> {
                 val inflater = LayoutInflater.from(activity)
