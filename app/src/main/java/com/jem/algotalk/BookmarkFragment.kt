@@ -44,6 +44,7 @@ class BookmarkFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_bookmark, container, false);
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_layout)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
 
@@ -62,6 +63,7 @@ class BookmarkFragment : Fragment() {
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
         swipeRefreshLayout.setOnRefreshListener {
+            linearLayout.removeAllViews()
             val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
             for (i in 0 until bookmark.size) {
                 val date = Date(System.currentTimeMillis())
@@ -70,7 +72,7 @@ class BookmarkFragment : Fragment() {
                 else
                     showTextView(bookmark[i].content, date.toString(), view)
             }
-            Log.i("sangeun", "북마크 뷰 create")
+            chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
             swipeRefreshLayout.isRefreshing = false
         }
