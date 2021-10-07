@@ -8,6 +8,6 @@
         android:topLeftRadius="0dp"
         android:topRightRadius="15dp" />
 
-    <solid android:color="@color/colorAccent"/>
+    <solid android:color="@color/botChat"/>
 
 </shape>

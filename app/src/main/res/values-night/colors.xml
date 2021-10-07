@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="transparent">#00FF0000</color>
+
+    //splash
+    <color name="splash_background">#D3A5F8</color>
+
+    //dark theme color
+    <color name="background">#380066</color>
+    <color name="userChat">#451171</color>
+    <color name="botChat">#440C92</color>
+    <color name="sendButton">#4A00AD</color>
+    <color name="sendText">#2B0167</color>
+    <color name="text">#D4DAF7</color>
+
+</resources>
