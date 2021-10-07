@@ -49,6 +49,7 @@ class BookmarkFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_bookmark, container, false);
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_layout)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
 
@@ -67,6 +68,7 @@ class BookmarkFragment : Fragment() {
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
         swipeRefreshLayout.setOnRefreshListener {
+            linearLayout.removeAllViews()
             val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
             for (i in 0 until bookmark.size) {
                 val date = Date(System.currentTimeMillis())
@@ -75,7 +77,7 @@ class BookmarkFragment : Fragment() {
                 else
                     showTextView(bookmark[i].content, date.toString(), view)
             }
-
+            chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -155,8 +157,9 @@ class BookmarkFragment : Fragment() {
             )
             time = dateTimeFormat.format(dateNew)
         }
+
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
     }
 
     fun showImageView(message: String, date: String, view: View) {
@@ -195,27 +198,8 @@ class BookmarkFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
 
-        val currentDateTime = Date(System.currentTimeMillis())
-        val dateNew = Date(date)
-        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
-        val currentDate = dateFormat.format(currentDateTime)
-        val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if(currentDate.equals(providedDate)) {
-            val timeFormat = SimpleDateFormat(
-                "hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = timeFormat.format(dateNew)
-        }else{
-            val dateTimeFormat = SimpleDateFormat(
-                "dd-MM-yy hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = dateTimeFormat.format(dateNew)
-        }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
     }
 
     fun showOpenGraphView(
