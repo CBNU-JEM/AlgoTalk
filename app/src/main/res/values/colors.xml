@@ -15,5 +15,20 @@
 
     <color name="transparent">#00FF0000</color>
 
+    //splash
     <color name="splash_background">#D3A5F8</color>
+
+    //light theme color
+    <color name="light_background">#D4DAF7</color>
+    <color name="light_userChat">#B699FF</color>
+    <color name="light_botChat">#A8A8FF</color>
+    <color name="light_sendButton">#D3A5F8</color>
+    <color name="light_sendText">#CCCCFF</color>
+
+    //dark theme color
+    <color name="dark_background">#380066</color>
+    <color name="dark_userChat">#451171</color>
+    <color name="dark_botChat">#440C92</color>
+    <color name="dark_sendButton">#4A00AD</color>
+    <color name="dark_sendText">#2B0167</color>
 </resources>
