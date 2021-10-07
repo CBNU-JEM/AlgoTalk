@@ -96,7 +96,7 @@ class ChatFragment : Fragment() {
         popupButton = view.findViewById(R.id.show_user_level_popup)
         popupButton.setOnClickListener {
             val mDialogView = LayoutInflater.from(getActivity()).inflate(R.layout.set_user, null)
-            val mBuilder = AlertDialog.Builder(getActivity())
+            val mBuilder = AlertDialog.Builder(getActivity(), R.style.MyDialogTheme)
                 .setView(mDialogView)
                 .setTitle("너의 코딩실력을 알려줘 😀")
 
