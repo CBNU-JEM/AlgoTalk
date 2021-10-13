@@ -10,8 +10,7 @@
     <androidx.core.widget.NestedScrollView
         android:id="@+id/chatScrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="80dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/frame"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -42,7 +41,7 @@
             android:id="@+id/layout_chattingArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#DAF6E1"
+            android:background="@color/sendText"
             android:minHeight="48dp"
             android:orientation="horizontal">
 
@@ -65,8 +64,8 @@
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="5dp"
                 android:layout_weight="1"
-                android:background="@color/white"
-                app:boxStrokeColor="@color/dark_green"
+                android:background="@color/sendText"
+                app:boxStrokeColor="@color/sendButton"
                 android:maxLines="6">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -74,18 +73,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginBottom="4dp"
-                    android:background="#DAF6E1"
+                    android:background="@color/sendText"
                     android:maxLines="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/send_button"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:layout_margin="8dp"
+                android:layout_margin="4dp"
                 android:src="@drawable/ic_baseline_send_24"
                 android:background="?attr/selectableItemBackground"
+                android:backgroundTint="@color/sendButton"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
                 android:clickable="true"

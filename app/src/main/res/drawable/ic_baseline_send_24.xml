@@ -3,7 +3,7 @@
     android:height="20dp"
     android:viewportWidth="23"
     android:viewportHeight="21"
-    android:tint="@color/dark_green"
+    android:tint="@color/sendButton"
     android:autoMirrored="true">
   <path
       android:fillColor="@android:color/white"

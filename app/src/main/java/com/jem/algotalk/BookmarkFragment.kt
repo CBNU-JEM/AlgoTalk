@@ -1,10 +1,10 @@
 package com.jem.algotalk
 
 import android.app.Activity
-import android.content.ContentValues
-import android.database.sqlite.SQLiteDatabase
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.provider.BaseColumns
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,9 +15,12 @@ import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -44,6 +47,7 @@ class BookmarkFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_bookmark, container, false);
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_layout)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         activity = context as Activity
         dbHelper = FeedReaderDbHelper(requireContext())
 
@@ -62,6 +66,7 @@ class BookmarkFragment : Fragment() {
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
         swipeRefreshLayout.setOnRefreshListener {
+            linearLayout.removeAllViews()
             val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
             for (i in 0 until bookmark.size) {
                 val date = Date(System.currentTimeMillis())
@@ -70,8 +75,7 @@ class BookmarkFragment : Fragment() {
                 else
                     showTextView(bookmark[i].content, date.toString(), view)
             }
-            Log.i("sangeun", "북마크 뷰 create")
-
+            chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -84,16 +88,14 @@ class BookmarkFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.i("sangeun", "onDestroyView")
     }
 
     override fun onDestroy() {
         dbHelper.close()
         super.onDestroy()
-        Log.i("sangeun", "onDestroy")
     }
 
-    fun showTextView(message: String, date: String, view:View) {
+    fun showTextView(message: String, date: String, view: View) {
         var frameLayout: FrameLayout? = null
         frameLayout = getBotLayout()
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
@@ -101,6 +103,13 @@ class BookmarkFragment : Fragment() {
         linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.setText(message)
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+
         frameLayout?.requestFocus()
         //editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
@@ -116,6 +125,22 @@ class BookmarkFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
             else
                 dbHelper.insertBookmark(bookmark)
+        }
+
+        //open graph
+        val url = UrlData
+        if (url.extractUrlFromText(message)) {
+//            Log.i("sangeun", "url 파싱"+url.metadata.url)
+            CoroutineScope(Dispatchers.Main).launch {
+                //url 확인 후 크롤링을 통해 메타데이터 구분
+                url.getMetadataFromUrl()
+                Log.i("sangeun", "오픈그래프 " + url.metadata.title)
+                val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
+                if (messageLayout != null) {
+                    showOpenGraphView(url.metadata, messageLayout, date.toString(), view)
+                }
+            }
+            Log.i("sangeun", "오픈그래프 끝")
         }
 
         val currentDateTime = Date(System.currentTimeMillis())
@@ -137,8 +162,9 @@ class BookmarkFragment : Fragment() {
             )
             time = dateTimeFormat.format(dateNew)
         }
+
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
     }
 
     fun showImageView(message: String, date: String, view: View) {
@@ -157,7 +183,6 @@ class BookmarkFragment : Fragment() {
 
         dbHelper = FeedReaderDbHelper(requireContext())
 
-        Log.i("sangeun", "이미지 출력 확인")
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
 
         val bookmark = Bookmark()
@@ -178,27 +203,47 @@ class BookmarkFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
 
-        val currentDateTime = Date(System.currentTimeMillis())
-        val dateNew = Date(date)
-        val dateFormat = SimpleDateFormat("dd-MM-YYYY", Locale.ENGLISH)
-        val currentDate = dateFormat.format(currentDateTime)
-        val providedDate = dateFormat.format(dateNew)
-        var time = ""
-        if(currentDate.equals(providedDate)) {
-            val timeFormat = SimpleDateFormat(
-                "hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = timeFormat.format(dateNew)
-        }else{
-            val dateTimeFormat = SimpleDateFormat(
-                "dd-MM-yy hh:mm aa",
-                Locale.ENGLISH
-            )
-            time = dateTimeFormat.format(dateNew)
-        }
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.image_message_time)
-        timeTextView?.setText(time.toString())
+        timeTextView?.visibility = View.GONE
+    }
+
+    fun showOpenGraphView(
+        message: Metadata,
+        messageLayout: LinearLayout,
+        date: String,
+        view: View
+    ) {
+        var frameLayout: FrameLayout? = null
+        frameLayout = getBotLayout("openGraph")
+
+        Log.i("sangeun", "오픈그래프 출력")
+
+        messageLayout.addView(frameLayout, 1)
+        //이미지 출력
+
+        val messageOpenGraphView =
+            frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
+        if (messageOpenGraphView != null) {
+            Glide.with(this).load(message.imageUrl)
+                .override(800, 400).centerCrop().into(messageOpenGraphView!!)
+        }
+
+        //타이틀+설명 출력
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
+        messageTextView?.text = message.title
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+
+        //레이아웃 클릭시 앱브라우저로 url 실행
+        frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(message.url)
+            startActivity(i)
+        }
     }
 
     fun getBotLayout(): FrameLayout? {
@@ -211,6 +256,10 @@ class BookmarkFragment : Fragment() {
             "image" -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_image_message_area, null) as FrameLayout?
+            }
+            "openGraph" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_opengraph_area, null) as FrameLayout?
             }
             else -> {
                 val inflater = LayoutInflater.from(activity)
