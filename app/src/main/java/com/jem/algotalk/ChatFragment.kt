@@ -242,6 +242,13 @@ class ChatFragment : Fragment() {
         linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.text = message
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
@@ -447,6 +454,12 @@ class ChatFragment : Fragment() {
         //타이틀+설명 출력
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
         messageTextView?.text = message.title
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
 
         //레이아웃 클릭시 앱브라우저로 url 실행
         frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {

@@ -1,12 +1,10 @@
 package com.jem.algotalk
 
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Intent
-import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import android.os.Bundle
-import android.provider.BaseColumns
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,12 +15,12 @@ import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -97,7 +95,7 @@ class BookmarkFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun showTextView(message: String, date: String, view:View) {
+    fun showTextView(message: String, date: String, view: View) {
         var frameLayout: FrameLayout? = null
         frameLayout = getBotLayout()
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
@@ -105,6 +103,13 @@ class BookmarkFragment : Fragment() {
         linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.setText(message)
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+
         frameLayout?.requestFocus()
         //editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
@@ -129,7 +134,7 @@ class BookmarkFragment : Fragment() {
             CoroutineScope(Dispatchers.Main).launch {
                 //url 확인 후 크롤링을 통해 메타데이터 구분
                 url.getMetadataFromUrl()
-                Log.i("sangeun", "오픈그래프 "+url.metadata.title)
+                Log.i("sangeun", "오픈그래프 " + url.metadata.title)
                 val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
                 if (messageLayout != null) {
                     showOpenGraphView(url.metadata, messageLayout, date.toString(), view)
@@ -213,7 +218,7 @@ class BookmarkFragment : Fragment() {
 
         Log.i("sangeun", "오픈그래프 출력")
 
-        messageLayout.addView(frameLayout,1)
+        messageLayout.addView(frameLayout, 1)
         //이미지 출력
 
         val messageOpenGraphView =
@@ -226,6 +231,12 @@ class BookmarkFragment : Fragment() {
         //타이틀+설명 출력
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
         messageTextView?.text = message.title
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
 
         //레이아웃 클릭시 앱브라우저로 url 실행
         frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
