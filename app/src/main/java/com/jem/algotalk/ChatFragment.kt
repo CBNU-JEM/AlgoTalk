@@ -1,10 +1,11 @@
 package com.jem.algotalk
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import android.app.AlertDialog
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -154,8 +155,11 @@ class ChatFragment : Fragment() {
     fun sendMessage(view: View, message: String, printMessage: String) {
         dbHelper = FeedReaderDbHelper(requireContext())
         var user_info = User()
-        user_info = dbHelper.readUser(view)
-
+        val sender_id = Settings.Secure.getString(
+            context!!.contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+        Log.i("sender_id",  sender_id.toString())
         startTime1 = System.currentTimeMillis()
 //        val startTime= System.currentTimeMillis()
 //        Log.i("server response start",  startTime.toString())
@@ -172,9 +176,9 @@ class ChatFragment : Fragment() {
         if (message.trim().isEmpty())
             Toast.makeText(getActivity(), "쿼리를 확인해줘", Toast.LENGTH_SHORT).show()
         else {
-            Log.e("Msg", user_info.name + " msssage: $message " + user_info.level)
+            Log.e("Msg", sender_id + " msssage: $message " + user_info.level)
             editText.setText("")
-            userMessage.UserMessage(user_info.name, message, user_info.level.toInt())
+            userMessage.UserMessage(sender_id, message, user_info.level.toInt())
             if (printMessage.isNotEmpty())
                 showTextView(printMessage, USER, date.toString(), view)
             else
@@ -218,8 +222,8 @@ class ChatFragment : Fragment() {
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
                 val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
-                t.printStackTrace()
-                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
+                //t.printStackTrace()
+                //Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -266,33 +270,13 @@ class ChatFragment : Fragment() {
             CoroutineScope(Dispatchers.Main).launch {
                 //url 확인 후 크롤링을 통해 메타데이터 구분
                 url.getMetadataFromUrl()
-                val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
+                val messageLayout =
+                    frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
                 if (messageLayout != null) {
                     showOpenGraphView(url.metadata, messageLayout, BOT, date.toString(), view)
                 }
-//                Log.i("url check", url.metadata.url)
-//                val openGraphLayout = view.findViewById<LinearLayout>(R.id.chat_open_graph_layout)
-//                //레이아웃 클릭시 앱브라우저로 url 실행
-//                openGraphLayout.setOnClickListener {
-//                    val i = Intent(Intent.ACTION_VIEW)
-//                    i.data = Uri.parse(url.metadata.url)
-//                    startActivity(i)
-//                }
-//                //이미지 출력  자르기 안되면 쪼그려
-//                val imageViewWidth = frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
-//                val messageOpenGraphView =
-//                    frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
-//                if (imageViewWidth != null) {
-//                   // Glide.with(this).load(url.metadata.imageUrl).override(imageViewWidth.width,imageViewWidth.width).into(messageOpenGraphView!!)
-//                }
-//                //타이틀+설명 출력
-//                val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
-//                messageTextView?.text = url.metadata.title + '\n' + url.metadata.url
             }
         }
-//        if(url.isMetadata()){
-//
-//        }
         //time
         val currentDateTime = Date(System.currentTimeMillis())
         val dateNew = Date(date)
@@ -434,7 +418,7 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-        messageLayout.addView(frameLayout,1)
+        messageLayout.addView(frameLayout, 1)
         //이미지 출력
 
         val messageOpenGraphView =
@@ -447,6 +431,9 @@ class ChatFragment : Fragment() {
         //타이틀+설명 출력
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
         messageTextView?.text = message.title
+
+        val linkExplainView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_link)
+        linkExplainView?.text = "\n여기를 눌러 링크를 확인하세요."
 
         //레이아웃 클릭시 앱브라우저로 url 실행
         frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
