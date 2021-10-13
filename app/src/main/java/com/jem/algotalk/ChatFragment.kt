@@ -85,6 +85,23 @@ class ChatFragment : Fragment() {
             false
         }
 
+        val opening = "\uD83E\uDD16나와 대화하는 방법에 대해서 알려줄게\uD83E\uDD16\n" +
+                "나에게 궁금한 것을 물어봐줘~ 내가 알려줄수 있는 정보는 아래를 확인해줘ㅎㅎ\n\n" +
+                "\uD83D\uDD38 알고리즘\n" +
+                "나는 알고리즘에 대한 설명과 난이도를 알려줄 수 있어.\n" +
+                "ex) 정렬 알고리즘 (자세하게) 알려줘, 정렬 알고리즘 난이도 알려줘\n" +
+                "\uD83D\uDD38 문제추천\n" +
+                "나는 알고리즘에 관련된 문제를 추천해줄 수도 있어ㅎㅎ\n" +
+                "ex) A+B 문제 알려줘 -> 난이도 선택버튼, 정렬 알고리즘 문제 추천해줘 -> 난이도 선택버튼\n" +
+                "\uD83D\uDD38 대회정보\n" +
+                "너를 위해 대회 정보도 준비해놨지~ 히힛\n" +
+                "ex) 준파고를 잡아라 대회 알려줘, 현재 진행중인 대회 알려줘\n" +
+                "\n" +
+                "\uD83D\uDD39왼쪽 아래에 더보기버튼을 누르면 너의 알고리즘 수준을 설정할 수 있어! 알고리즘 수준을 모르겠다면 solved.ac 사이트를 참고해줘\uD83D\uDE09"
+
+        val open_date = Date(System.currentTimeMillis())
+        showOpeningView(opening, BOT, open_date.toString(), view)
+
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         sendButton = view.findViewById(R.id.send_button)
         sendButton.setOnClickListener {
@@ -222,6 +239,43 @@ class ChatFragment : Fragment() {
                 Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    fun showOpeningView(message: String, type: Int, date: String, view: View) {
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        val frameLayout: FrameLayout? = when (type) {
+            USER -> {
+                getUserLayout()
+            }
+            BOT -> {
+                getBotLayout()
+            }
+            else -> {
+                getBotLayout()
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
+        messageTextView?.text = message
+        frameLayout?.requestFocus()
+        editText.requestFocus()
+        dbHelper = FeedReaderDbHelper(requireContext())
+        //book mark
+        val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+        val bookmark = Bookmark()
+        bookmark.content = message
+        bookmark.img_uri = "none"
+        val bookmark_flag = dbHelper.isAlready(bookmark)
+
+        if (bookmark_flag == 1)
+            bookmarkbutton?.isChecked = true
+        bookmarkbutton?.setOnClickListener {
+            if (bookmarkbutton.isChecked)
+                dbHelper.insertBookmark(bookmark)
+            else
+                dbHelper.deleteBookmark(bookmark)
+        }
     }
 
 
