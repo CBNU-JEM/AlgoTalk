@@ -13,5 +13,6 @@
     <color name="sendButton">#4A00AD</color>
     <color name="sendText">#2B0167</color>
     <color name="text">#D4DAF7</color>
+    <color name="text_gray">#808080</color>
 
 </resources>
