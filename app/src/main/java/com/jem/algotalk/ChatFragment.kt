@@ -263,6 +263,13 @@ class ChatFragment : Fragment() {
         linearLayout.addView(frameLayout)
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
         messageTextView?.text = message
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
