@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -12,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -170,6 +172,7 @@ class ChatFragment : Fragment() {
         super.onDestroy()
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     fun sendMessage(view: View, message: String, printMessage: String) {
         dbHelper = FeedReaderDbHelper(requireContext())
         var user_info = User()
@@ -201,6 +204,16 @@ class ChatFragment : Fragment() {
                 showTextView(printMessage, USER, date.toString(), view)
             else
                 showTextView(message, USER, date.toString(), view)
+        }
+        //유저 난이도 정보 전달
+        if (printMessage.isNotEmpty()){
+            if(message.compareTo("/problem_recommendation{ \"problem_level\": -1 }")==0){
+                //val messageUserLevel= "/problem_recommendation{ \"problem_level\": ${dbHelper.readUser(view).level} }"
+                user_info.level=dbHelper.readUser(view).level
+                userMessage.UserMessage(sender_id, user_info.LevalMapping(), dbHelper.readUser(view).level.toInt())
+
+                Log.e("userMessage change", "msssage: ${userMessage.message} ")
+            }
         }
         val messageSender = retrofit.create(MessageSender::class.java)
         val response =
