@@ -389,6 +389,7 @@ class ChatFragment : Fragment() {
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
         val messageImageView = frameLayout?.findViewById<ImageView>(R.id.chat_image_message)
+        //GlideApp.with(this).load(message).into(messageImageView!!)
 
         Glide.with(this).load(message).into(messageImageView!!)
 

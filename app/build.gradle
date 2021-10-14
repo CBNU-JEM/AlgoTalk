@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -53,6 +54,9 @@ dependencies {
     // glide 인터넷 uri image 가져오기
     implementation 'com.github.bumptech.glide:glide:4.10.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
+    kapt 'com.github.bumptech.glide:compiler:4.10.0'
+    kapt "android.arch.lifecycle:compiler:1.0.0"
+
 
     //rasa
     implementation 'com.squareup.retrofit2:retrofit:2.6.4'
