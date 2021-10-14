@@ -86,6 +86,7 @@
                 android:src="@drawable/ic_baseline_send_24"
                 android:background="?attr/selectableItemBackground"
                 android:backgroundTint="@color/sendButton"
+                app:borderWidth="0dp"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
                 android:clickable="true"
