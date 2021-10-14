@@ -275,19 +275,7 @@ class ChatFragment : Fragment() {
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-        val bookmark = Bookmark()
-        bookmark.content = message
-        bookmark.img_uri = "none"
-        val bookmark_flag = dbHelper.isAlready(bookmark)
-
-        if (bookmark_flag == 1)
-            bookmarkbutton?.isChecked = true
-        bookmarkbutton?.setOnClickListener {
-            if (bookmarkbutton.isChecked)
-                dbHelper.insertBookmark(bookmark)
-            else
-                dbHelper.deleteBookmark(bookmark)
-        }
+        bookmarkbutton?.visibility = View.GONE
     }
 
 
