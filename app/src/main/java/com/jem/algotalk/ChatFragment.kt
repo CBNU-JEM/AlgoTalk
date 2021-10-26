@@ -562,8 +562,9 @@ class ChatFragment : Fragment() {
         }
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
-//        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
-//        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
+        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
+
 
         val slideLayout = frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)
         elements.forEach {
