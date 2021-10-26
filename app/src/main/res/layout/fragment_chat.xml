@@ -20,8 +20,11 @@
             android:id="@+id/chat_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            />
+
     </androidx.core.widget.NestedScrollView>
+
     <FrameLayout
         android:id="@+id/frame"
         android:layout_width="0dp"
@@ -65,6 +68,7 @@
                 android:layout_marginHorizontal="5dp"
                 android:layout_weight="1"
                 android:background="@color/sendText"
+                android:layout_marginBottom="4dp"
                 app:boxStrokeColor="@color/sendButton"
                 android:maxLines="6">
 
@@ -76,7 +80,6 @@
                     android:background="@color/sendText"
                     android:maxLines="6" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/send_button"
                 android:layout_width="wrap_content"
@@ -86,6 +89,7 @@
                 android:src="@drawable/ic_baseline_send_24"
                 android:background="?attr/selectableItemBackground"
                 android:backgroundTint="@color/sendButton"
+                app:borderWidth="0dp"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
                 android:clickable="true"
@@ -94,6 +98,7 @@
                 app:fabSize="normal" />
 
         </LinearLayout>
+
     </FrameLayout>
 
 

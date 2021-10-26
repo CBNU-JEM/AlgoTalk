@@ -8,7 +8,7 @@ import org.jsoup.Jsoup
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-object UrlData {
+class UrlData {
     private lateinit var url: String
     private var flag: Boolean = false
     val metadata = Metadata()
@@ -41,7 +41,7 @@ object UrlData {
             }
             return@withContext metadata
         }catch(ex: Exception){
-            Log.e("ogerror", ex.toString())
+            Log.e("ogerror0", ex.toString())
             return@withContext metadata
         }
 

@@ -65,6 +65,17 @@ class BookmarkFragment : Fragment() {
 
         chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
+        val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
+        for (i in 0 until bookmark.size) {
+            val date = Date(System.currentTimeMillis())
+            if (bookmark[i].content == "none")
+                showImageView(bookmark[i].img_uri, date.toString(), view)
+            else
+                showTextView(bookmark[i].content, date.toString(), view)
+        }
+        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+        swipeRefreshLayout.isRefreshing = false
+
         swipeRefreshLayout.setOnRefreshListener {
             linearLayout.removeAllViews()
             val bookmark: MutableList<Bookmark> = dbHelper.readBookmark(view)
@@ -128,7 +139,7 @@ class BookmarkFragment : Fragment() {
         }
 
         //open graph
-        val url = UrlData
+        val url = UrlData()
         if (url.extractUrlFromText(message)) {
 //            Log.i("sangeun", "url 파싱"+url.metadata.url)
             CoroutineScope(Dispatchers.Main).launch {

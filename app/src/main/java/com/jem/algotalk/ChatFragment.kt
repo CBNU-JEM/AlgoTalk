@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -12,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -19,9 +21,9 @@ import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.kakao.sdk.newtoneapi.SpeechRecognizerClient
+import com.kakao.sdk.newtoneapi.SpeechRecognizerManager
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -61,6 +63,9 @@ class ChatFragment : Fragment() {
     private lateinit var dbHelper: FeedReaderDbHelper
     //private lateinit var btnRecyclerView: RecyclerView
 
+    //kakao
+    private lateinit var client: SpeechRecognizerClient
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -74,6 +79,7 @@ class ChatFragment : Fragment() {
         if (container != null) {
             this.container = container
         }
+
 
         editText = view.findViewById(R.id.editText_chattingArea)
         editText.setOnKeyListener { vieww, keyCode, event ->
@@ -162,11 +168,13 @@ class ChatFragment : Fragment() {
 
         }
 
+
         return view
     }
 
     override fun onDestroy() {
         dbHelper.close()
+        SpeechRecognizerManager.getInstance().finalizeLibrary()
         super.onDestroy()
     }
 
@@ -177,7 +185,7 @@ class ChatFragment : Fragment() {
             context!!.contentResolver,
             Settings.Secure.ANDROID_ID
         )
-        Log.i("sender_id",  sender_id.toString())
+        Log.i("sender_id", sender_id.toString())
         startTime1 = System.currentTimeMillis()
 //        val startTime= System.currentTimeMillis()
 //        Log.i("server response start",  startTime.toString())
@@ -201,6 +209,21 @@ class ChatFragment : Fragment() {
                 showTextView(printMessage, USER, date.toString(), view)
             else
                 showTextView(message, USER, date.toString(), view)
+        }
+        //유저 난이도 정보 전달
+        if (printMessage.isNotEmpty()) {
+            if (message.compareTo("/problem_recommendation{ \"problem_level\": -1 }") == 0) {
+                //val messageUserLevel= "/problem_recommendation{ \"problem_level\": ${dbHelper.readUser(view).level} }"
+                user_info.level = dbHelper.readUser(view).level
+                userMessage.UserMessage(
+                    sender_id,
+                    user_info.LevalMapping(),
+                    dbHelper.readUser(view).level.toInt()
+                )
+
+
+                Log.e("userMessage change", "msssage: ${userMessage.message} ")
+            }
         }
         val messageSender = retrofit.create(MessageSender::class.java)
         val response =
@@ -229,6 +252,10 @@ class ChatFragment : Fragment() {
                         if (botResponse.buttons != null) {
                             showButtonView(botResponse.buttons, BOT, view)
                         }
+                        //json 파일일시
+                        if (botResponse.custom != null) {
+                            showSlideAreaView(botResponse.custom.list, BOT, date.toString(), view)
+                        }
                     }
                 }
 
@@ -240,8 +267,8 @@ class ChatFragment : Fragment() {
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
                 val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
-                //t.printStackTrace()
-                //Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
+//                t.printStackTrace()
+//                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -268,26 +295,14 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
 
         frameLayout?.requestFocus()
         editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-        val bookmark = Bookmark()
-        bookmark.content = message
-        bookmark.img_uri = "none"
-        val bookmark_flag = dbHelper.isAlready(bookmark)
-
-        if (bookmark_flag == 1)
-            bookmarkbutton?.isChecked = true
-        bookmarkbutton?.setOnClickListener {
-            if (bookmarkbutton.isChecked)
-                dbHelper.insertBookmark(bookmark)
-            else
-                dbHelper.deleteBookmark(bookmark)
-        }
+        bookmarkbutton?.visibility = View.GONE
     }
 
 
@@ -313,7 +328,7 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
 
         frameLayout?.requestFocus()
         editText.requestFocus()
@@ -334,7 +349,7 @@ class ChatFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
         //open graph
-        val url = UrlData
+        val url = UrlData()
         if (url.extractUrlFromText(message)) {
             CoroutineScope(Dispatchers.Main).launch {
                 //url 확인 후 크롤링을 통해 메타데이터 구분
@@ -342,7 +357,7 @@ class ChatFragment : Fragment() {
                 val messageLayout =
                     frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
                 if (messageLayout != null) {
-                    showOpenGraphView(url.metadata, messageLayout, BOT, date.toString(), view)
+                    showOpenGraphView(url.metadata, messageLayout, BOT)
                 }
             }
         }
@@ -389,6 +404,7 @@ class ChatFragment : Fragment() {
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
         val messageImageView = frameLayout?.findViewById<ImageView>(R.id.chat_image_message)
+        //GlideApp.with(this).load(message).into(messageImageView!!)
 
         Glide.with(this).load(message).into(messageImageView!!)
 
@@ -441,7 +457,7 @@ class ChatFragment : Fragment() {
         timeTextView?.text = time.toString()
     }
 
-    fun showButtonView(buttons: List<BotResponse.Buttons>, type: Int, view: View) {
+    fun showButtonView(buttons: List<BotResponse.Button>, type: Int, view: View) {
         var frameLayout: FrameLayout? = null
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         frameLayout = when (type) {
@@ -468,12 +484,10 @@ class ChatFragment : Fragment() {
         recyclerView?.adapter = buttonRecyclerView
     }
 
-    fun showOpenGraphView(
+    private fun showOpenGraphView(
         message: Metadata,
         messageLayout: LinearLayout,
-        type: Int,
-        date: String,
-        view: View
+        type: Int
     ) {
         var frameLayout: FrameLayout? = null
         frameLayout = when (type) {
@@ -505,7 +519,7 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
         val linkExplainView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_link)
         linkExplainView?.text = "\n여기를 눌러 링크를 확인하세요."
 
@@ -518,7 +532,179 @@ class ChatFragment : Fragment() {
         }
     }
 
-    inner class ButtonRecyclerView(private var buttons: List<BotResponse.Buttons>) :
+    fun showSlideAreaView(
+        elements: List<BotResponse.Element>,
+        type: Int,
+        date: String,
+        view: View
+    ) {
+        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
+        val frameLayout: FrameLayout? = when (type) {
+            USER -> {
+                getUserLayout()
+            }
+            BOT -> {
+                getBotLayout("slideArea")
+            }
+            else -> {
+                getBotLayout()
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        linearLayout.addView(frameLayout)
+        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
+        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
+
+
+        val slideLayout = frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)
+        elements.forEach {
+            //버튼 위치문제
+            if (slideLayout != null) {
+                val slideFrame = showSlideView(it.text, BOT, date, slideLayout)
+                if (slideFrame != null) {
+                    showSlideButtonView(it.buttons, BOT, slideFrame)
+                }
+                it.buttons.forEach {
+                    Log.i("slide buttons", it.payload)
+                }
+            }
+        }
+
+    }
+
+
+    private fun showSlideView(message: String, type: Int, date: String, slideLayout: LinearLayout): FrameLayout? {
+        val frameLayout: FrameLayout? = when (type) {
+            USER -> {
+                getUserLayout()
+            }
+            BOT -> {
+                getBotLayout("slide")
+            }
+            else -> {
+                getBotLayout()
+            }
+        }
+        frameLayout?.isFocusableInTouchMode = true
+        slideLayout.addView(frameLayout)
+
+        val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
+        messageTextView?.text = message
+
+        val metrics = resources.displayMetrics
+        val screenHeight = metrics.heightPixels
+        val screenWidth = metrics.widthPixels
+
+        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+
+        frameLayout?.requestFocus()
+        editText.requestFocus()
+        dbHelper = FeedReaderDbHelper(requireContext())
+        //book mark
+        val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
+        val bookmark = Bookmark()
+        bookmark.content = message
+        bookmark.img_uri = "none"
+        val bookmark_flag = dbHelper.isAlready(bookmark)
+
+        if (bookmark_flag == 1)
+            bookmarkbutton?.isChecked = true
+        bookmarkbutton?.setOnClickListener {
+            if (bookmarkbutton.isChecked)
+                dbHelper.insertBookmark(bookmark)
+            else
+                dbHelper.deleteBookmark(bookmark)
+        }
+
+
+
+        CoroutineScope(Dispatchers.Main).launch {
+            //open graph
+            val url = UrlData()
+            if (url.extractUrlFromText(message)) {
+                url.getMetadataFromUrl()
+                val slideOGLayout =
+                    frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_message_layout)
+                if (slideOGLayout != null) {
+                    showOpenGraphView(url.metadata, slideOGLayout, BOT)
+                }
+            }
+        }
+
+
+        //time
+        val currentDateTime = Date(System.currentTimeMillis())
+        val dateNew = Date(date)
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
+        val currentDate = dateFormat.format(currentDateTime)
+        val providedDate = dateFormat.format(dateNew)
+        var time: String
+        time = if (currentDate == providedDate) {
+            val timeFormat = SimpleDateFormat(
+                "hh:mm aa",
+                Locale.ENGLISH
+            )
+            timeFormat.format(dateNew)
+        } else {
+            val dateTimeFormat = SimpleDateFormat(
+                "dd-MM-yy hh:mm aa",
+                Locale.ENGLISH
+            )
+            dateTimeFormat.format(dateNew)
+        }
+
+        val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
+
+        timeTextView?.text = time
+        return frameLayout
+    }
+
+
+    private fun showSlideButtonView(
+        buttons: List<BotResponse.Button>,
+        type: Int,
+        slideLayout: FrameLayout
+    ) {
+        var frameLayout: FrameLayout? = null
+        frameLayout = when (type) {
+            USER -> {
+                getUserLayout()
+            }
+            BOT -> {
+                getBotLayout("button")
+            }
+            else -> {
+                getBotLayout("button")
+            }
+        }
+        slideLayout.findViewById<LinearLayout>(R.id.slide_chat_linear_layout).addView(frameLayout,1)
+//        var slideMessageFrameLayout: FrameLayout? = null
+//        slideMessageFrameLayout = when (type) {
+//            USER -> {
+//                getUserLayout()
+//            }
+//            BOT -> {
+//                getBotLayout("slideArea")
+//            }
+//            else -> {
+//                getBotLayout("slideArea")
+//            }
+//        }
+//        slideMessageFrameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)?.addView(frameLayout)
+        frameLayout?.isFocusableInTouchMode = true
+//        slideLayout.addView(frameLayout)
+        //frameLayout?.requestFocus()
+        editText.requestFocus()
+        val buttonRecyclerView = ButtonRecyclerView(buttons)
+        val layoutManager: FlexboxLayoutManager?
+        val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
+        layoutManager = FlexboxLayoutManager(activity)
+        //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+        recyclerView?.layoutManager = layoutManager
+        recyclerView?.adapter = buttonRecyclerView
+    }
+
+    inner class ButtonRecyclerView(private var buttons: List<BotResponse.Button>) :
         RecyclerView.Adapter<ButtonRecyclerView.ButtonViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ButtonViewHolder {
             val view =
@@ -573,11 +759,18 @@ class ChatFragment : Fragment() {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_opengraph_area, null) as FrameLayout?
             }
+            "slide" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_slide_message, null) as FrameLayout?
+            }
+            "slideArea" -> {
+                val inflater = LayoutInflater.from(activity)
+                return inflater.inflate(R.layout.bot_slide_message_area, null) as FrameLayout?
+            }
             else -> {
                 val inflater = LayoutInflater.from(activity)
                 return inflater.inflate(R.layout.bot_message_area, null) as FrameLayout?
             }
         }
     }
-
 }
