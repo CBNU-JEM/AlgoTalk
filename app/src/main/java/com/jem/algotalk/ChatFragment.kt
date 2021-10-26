@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -12,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -176,7 +178,6 @@ class ChatFragment : Fragment() {
         super.onDestroy()
     }
 
-
     fun sendMessage(view: View, message: String, printMessage: String) {
         dbHelper = FeedReaderDbHelper(requireContext())
         var user_info = User()
@@ -219,6 +220,7 @@ class ChatFragment : Fragment() {
                     user_info.LevalMapping(),
                     dbHelper.readUser(view).level.toInt()
                 )
+
 
                 Log.e("userMessage change", "msssage: ${userMessage.message} ")
             }
@@ -300,19 +302,7 @@ class ChatFragment : Fragment() {
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
-        val bookmark = Bookmark()
-        bookmark.content = message
-        bookmark.img_uri = "none"
-        val bookmark_flag = dbHelper.isAlready(bookmark)
-
-        if (bookmark_flag == 1)
-            bookmarkbutton?.isChecked = true
-        bookmarkbutton?.setOnClickListener {
-            if (bookmarkbutton.isChecked)
-                dbHelper.insertBookmark(bookmark)
-            else
-                dbHelper.deleteBookmark(bookmark)
-        }
+        bookmarkbutton?.visibility = View.GONE
     }
 
 
