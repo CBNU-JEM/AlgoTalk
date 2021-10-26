@@ -267,8 +267,8 @@ class ChatFragment : Fragment() {
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
                 val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
-                t.printStackTrace()
-                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
+//                t.printStackTrace()
+//                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -552,8 +552,9 @@ class ChatFragment : Fragment() {
         }
         frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
-//        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
-//        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
+        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
+
 
         val slideLayout = frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)
         elements.forEach {
