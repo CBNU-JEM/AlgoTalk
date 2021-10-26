@@ -267,8 +267,8 @@ class ChatFragment : Fragment() {
             override fun onFailure(call: Call<List<BotResponse>>, t: Throwable) {
                 val botMessage = "네트워크 연결을 확인해봐 \uD83E\uDD7A"
                 showTextView(botMessage, BOT, date.toString(), view)
-                t.printStackTrace()
-                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
+//                t.printStackTrace()
+//                Toast.makeText(getActivity(), "" + t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
