@@ -8,7 +8,7 @@
 
     //dark theme color
     <color name="background">#380066</color>
-    <color name="userChat">#451171</color>
+    <color name="userChat">#652099</color>
     <color name="botChat">#440C92</color>
     <color name="sendButton">#4A00AD</color>
     <color name="sendText">#2B0167</color>
