@@ -139,7 +139,7 @@ class BookmarkFragment : Fragment() {
         }
 
         //open graph
-        val url = UrlData
+        val url = UrlData()
         if (url.extractUrlFromText(message)) {
 //            Log.i("sangeun", "url 파싱"+url.metadata.url)
             CoroutineScope(Dispatchers.Main).launch {
