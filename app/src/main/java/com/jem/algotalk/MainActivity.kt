@@ -24,6 +24,8 @@ class MainActivity : AppCompatActivity() {
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         val viewPager2 = findViewById<ViewPager2>(R.id.viewPager2)
 
+        viewPager2.isUserInputEnabled = false
+
         val fgAdapter = ViewPagerAdapter(this)
 
         viewPager2.adapter = fgAdapter
