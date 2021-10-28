@@ -4,16 +4,15 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -41,8 +40,10 @@ import java.util.*
 class ChatFragment : Fragment() {
     // When requested, this adapter returns a DemoObjectFragment,
     // representing an object in the collection.
-    private val USER = 0
-    private val BOT = 1
+    companion object {
+        private const val USER = 0
+        private const val BOT = 1
+    }
 
     //private lateinit var viewPagerAdapter: ViewPagerAdapter
     //private lateinit var viewPager: ViewPager2
@@ -244,14 +245,17 @@ class ChatFragment : Fragment() {
                 } else {
                     response.body()!!.forEach { botResponse ->
                         if (botResponse.text != null) {
-                            showTextView(botResponse.text, BOT, date.toString(), view)
+                            val textFrame =
+                                showTextView(botResponse.text, BOT, date.toString(), view)
+                            if (botResponse.buttons != null && textFrame != null) {
+                                showButtonView(botResponse.buttons, BOT, view, textFrame)
+
+                            }
                         }
                         if (botResponse.image != null) {
                             showImageView(botResponse.image, BOT, date.toString(), view)
                         }
-                        if (botResponse.buttons != null) {
-                            showButtonView(botResponse.buttons, BOT, view)
-                        }
+
                         //json 파일일시
                         if (botResponse.custom != null) {
                             showSlideAreaView(botResponse.custom.list, BOT, date.toString(), view)
@@ -306,7 +310,7 @@ class ChatFragment : Fragment() {
     }
 
 
-    fun showTextView(message: String, type: Int, date: String, view: View) {
+    fun showTextView(message: String, type: Int, date: String, view: View): LinearLayout? {
         val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         val frameLayout: FrameLayout? = when (type) {
             USER -> {
@@ -384,6 +388,7 @@ class ChatFragment : Fragment() {
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
 
         timeTextView?.text = time
+        return frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
     }
 
 
@@ -457,9 +462,13 @@ class ChatFragment : Fragment() {
         timeTextView?.text = time.toString()
     }
 
-    fun showButtonView(buttons: List<BotResponse.Button>, type: Int, view: View) {
+    fun showButtonView(
+        buttons: List<BotResponse.Button>,
+        type: Int,
+        view: View,
+        textFrame: LinearLayout?
+    ) {
         var frameLayout: FrameLayout? = null
-        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         frameLayout = when (type) {
             USER -> {
                 getUserLayout()
@@ -471,17 +480,32 @@ class ChatFragment : Fragment() {
                 getBotLayout("button")
             }
         }
-        frameLayout?.isFocusableInTouchMode = true
-        linearLayout.addView(frameLayout)
+//        frameLayout?.isFocusableInTouchMode = true
+        textFrame?.addView(frameLayout, 1)
         frameLayout?.requestFocus()
         editText.requestFocus()
         val buttonRecyclerView = ButtonRecyclerView(buttons)
+
+        val metrics = resources.displayMetrics
+        val maxWidth = (metrics.widthPixels *0.8).toInt()
+
+        val buttonWidth = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            95f,
+            resources.displayMetrics
+        ).toInt()
+
+        if (buttonRecyclerView.itemCount >= maxWidth / buttonWidth) {
+            frameLayout?.layoutParams!!.width = maxWidth
+        }
+
         val layoutManager: FlexboxLayoutManager?
         val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
         layoutManager = FlexboxLayoutManager(activity)
         //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         recyclerView?.layoutManager = layoutManager
         recyclerView?.adapter = buttonRecyclerView
+
     }
 
     private fun showOpenGraphView(
@@ -503,20 +527,23 @@ class ChatFragment : Fragment() {
         }
         messageLayout.addView(frameLayout, 1)
         //이미지 출력
-
         val messageOpenGraphView =
             frameLayout?.findViewById<ImageView>(R.id.chat_open_graph_image_message)
         if (messageOpenGraphView != null) {
+            val metrics = resources.displayMetrics
+            val screenHeight = metrics.heightPixels
             Glide.with(this).load(message.imageUrl)
-                .override(800, 400).centerCrop().into(messageOpenGraphView!!)
-        }
+                .override(screenHeight / 2, screenHeight / 4).centerCrop()
+                .into(messageOpenGraphView!!)
 
+        }
+        frameLayout?.requestFocus()
+        editText.requestFocus()
         //타이틀+설명 출력
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_message)
         messageTextView?.text = message.title
 
         val metrics = resources.displayMetrics
-        val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
         messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
@@ -550,22 +577,26 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-        frameLayout?.isFocusableInTouchMode = true
+//        frameLayout?.isFocusableInTouchMode = true
         linearLayout.addView(frameLayout)
-        val chattingScrollView = frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
-        chattingScrollView?.post { chattingScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
 
+        val horizontalScrollView =
+            frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
+        horizontalScrollView?.post { horizontalScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
+        val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+        editText.requestFocus()
 
         val slideLayout = frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)
         elements.forEach {
             //버튼 위치문제
             if (slideLayout != null) {
                 val slideFrame = showSlideView(it.text, BOT, date, slideLayout)
-                if (slideFrame != null) {
+                if (slideFrame != null && it.buttons != null) {
                     showSlideButtonView(it.buttons, BOT, slideFrame)
                 }
                 it.buttons.forEach {
-                    Log.i("slide buttons", it.payload)
+                    Log.i("slide buttons", it.title)
                 }
             }
         }
@@ -573,7 +604,12 @@ class ChatFragment : Fragment() {
     }
 
 
-    private fun showSlideView(message: String, type: Int, date: String, slideLayout: LinearLayout): FrameLayout? {
+    private fun showSlideView(
+        message: String,
+        type: Int,
+        date: String,
+        slideLayout: LinearLayout
+    ): FrameLayout? {
         val frameLayout: FrameLayout? = when (type) {
             USER -> {
                 getUserLayout()
@@ -585,7 +621,7 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-        frameLayout?.isFocusableInTouchMode = true
+//        frameLayout?.isFocusableInTouchMode = true
         slideLayout.addView(frameLayout)
 
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
@@ -677,7 +713,8 @@ class ChatFragment : Fragment() {
                 getBotLayout("button")
             }
         }
-        slideLayout.findViewById<LinearLayout>(R.id.slide_chat_linear_layout).addView(frameLayout,1)
+        slideLayout.findViewById<LinearLayout>(R.id.slide_chat_message_layout)
+            .addView(frameLayout, 1)
 //        var slideMessageFrameLayout: FrameLayout? = null
 //        slideMessageFrameLayout = when (type) {
 //            USER -> {
@@ -691,15 +728,14 @@ class ChatFragment : Fragment() {
 //            }
 //        }
 //        slideMessageFrameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)?.addView(frameLayout)
-        frameLayout?.isFocusableInTouchMode = true
+//        frameLayout?.isFocusableInTouchMode = true
 //        slideLayout.addView(frameLayout)
-        //frameLayout?.requestFocus()
+        frameLayout?.requestFocus()
         editText.requestFocus()
         val buttonRecyclerView = ButtonRecyclerView(buttons)
-        val layoutManager: FlexboxLayoutManager?
+        val layoutManager: FlexboxLayoutManager? = FlexboxLayoutManager(activity)
         val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
-        layoutManager = FlexboxLayoutManager(activity)
-        //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+//        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         recyclerView?.layoutManager = layoutManager
         recyclerView?.adapter = buttonRecyclerView
     }
@@ -718,9 +754,6 @@ class ChatFragment : Fragment() {
             val payloadButton = buttons[position]
             holder.button.text = payloadButton.title
             holder.button.setOnClickListener {
-
-                startTime1 = System.currentTimeMillis()
-                Log.i("message print start", startTime1.toString())
                 view?.let { it1 -> sendMessage(it1, payloadButton.payload, payloadButton.title) }
             }
         }
