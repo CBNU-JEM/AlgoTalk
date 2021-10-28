@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -39,8 +40,10 @@ import java.util.*
 class ChatFragment : Fragment() {
     // When requested, this adapter returns a DemoObjectFragment,
     // representing an object in the collection.
-    private val USER = 0
-    private val BOT = 1
+    companion object {
+        private const val USER = 0
+        private const val BOT = 1
+    }
 
     //private lateinit var viewPagerAdapter: ViewPagerAdapter
     //private lateinit var viewPager: ViewPager2
@@ -466,7 +469,6 @@ class ChatFragment : Fragment() {
         textFrame: LinearLayout?
     ) {
         var frameLayout: FrameLayout? = null
-        val linearLayout = view.findViewById<LinearLayout>(R.id.chat_layout)
         frameLayout = when (type) {
             USER -> {
                 getUserLayout()
@@ -479,18 +481,30 @@ class ChatFragment : Fragment() {
             }
         }
 //        frameLayout?.isFocusableInTouchMode = true
-
         textFrame?.addView(frameLayout, 1)
         frameLayout?.requestFocus()
         editText.requestFocus()
         val buttonRecyclerView = ButtonRecyclerView(buttons)
+
+        val metrics = resources.displayMetrics
+        val maxWidth = (metrics.widthPixels *0.8).toInt()
+
+        val buttonWidth = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            95f,
+            resources.displayMetrics
+        ).toInt()
+
+        if (buttonRecyclerView.itemCount >= maxWidth / buttonWidth) {
+            frameLayout?.layoutParams!!.width = maxWidth
+        }
+
         val layoutManager: FlexboxLayoutManager?
         val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
         layoutManager = FlexboxLayoutManager(activity)
         //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         recyclerView?.layoutManager = layoutManager
         recyclerView?.adapter = buttonRecyclerView
-
 
     }
 
