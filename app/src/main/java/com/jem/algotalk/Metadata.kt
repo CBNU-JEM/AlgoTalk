@@ -1,10 +1,10 @@
 package com.jem.algotalk
 
 class Metadata {
-    lateinit var url: String
-    lateinit var imageUrl: String
-    lateinit var title: String
-    lateinit var description: String
+    var url: String= ""
+    var imageUrl: String = ""
+    var title: String= ""
+    var description: String= ""
 
     fun metadata(url: String, imageUrl: String, title: String, description: String) {
         this.url = url

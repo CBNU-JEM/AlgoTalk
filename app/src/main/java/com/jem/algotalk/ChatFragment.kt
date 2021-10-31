@@ -14,17 +14,20 @@ import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -362,7 +365,7 @@ class ChatFragment : Fragment() {
                 url.getMetadataFromUrl()
                 val messageLayout =
                     frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
-                if (messageLayout != null) {
+                if (messageLayout != null && url.metadata.imageUrl != "") {
                     showOpenGraphView(url.metadata, messageLayout, BOT)
                 }
             }
@@ -599,51 +602,56 @@ class ChatFragment : Fragment() {
         horizontalViewPager2?.adapter = adapter
         horizontalViewPager2?.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-        //양옆의 페이지 노출
-        val metrics = resources.displayMetrics
-        val px: Float =
-            44f * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        val px2: Float =
-            94f * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-        val currentVisibleItemPx = px.toInt()
-        val nextVisibleItemPx = px2.toInt()
-        val pageTranslationX =
-            nextVisibleItemPx + currentVisibleItemPx
-        horizontalViewPager2?.offscreenPageLimit = 2
-        horizontalViewPager2?.setPageTransformer { page, position ->
-            page.translationX = -pageTranslationX * (position)
+        if (horizontalViewPager2 != null && elements.size < 2) {
+            val wormDotsIndicator =
+                frameLayout?.findViewById<WormDotsIndicator>(R.id.worm_dots_indicator)
+            wormDotsIndicator?.visibility = INVISIBLE
         }
-        horizontalViewPager2?.addItemDecoration(object : RecyclerView.ItemDecoration() {
-            override fun getItemOffsets(
-                outRect: Rect,
-                view: View,
-                parent: RecyclerView,
-                state: RecyclerView.State
-            ) {
-                outRect.right = currentVisibleItemPx
-                outRect.left = currentVisibleItemPx
-            }
-        })
-//        viewpager2.apply {
-//            clipToPadding = false   // allow full width shown with padding
-//            clipChildren = false    // allow left/right item is not clipped
-//            offscreenPageLimit = 2  // make sure left/right item is rendered
+        if(horizontalViewPager2 != null && elements.size > 1){
+            val wormDotsIndicator =
+                frameLayout?.findViewById<WormDotsIndicator>(R.id.worm_dots_indicator)
+            wormDotsIndicator.setViewPager2(horizontalViewPager2)
+        }
+        //양옆의 페이지 노출
+//        val metrics = resources.displayMetrics
+//        val px: Float =
+//            44f * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+//        val px2: Float =
+//            94f * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+//        val currentVisibleItemPx = px.toInt()
+//        val nextVisibleItemPx = px2.toInt()
+//        val pageTranslationX =
+//            nextVisibleItemPx + currentVisibleItemPx
+//        horizontalViewPager2?.offscreenPageLimit = 2
+//        horizontalViewPager2?.setPageTransformer { page, position ->
+//            page.translationX = -pageTranslationX * (position)
 //        }
+//        horizontalViewPager2?.addItemDecoration(object : RecyclerView.ItemDecoration() {
+//            override fun getItemOffsets(
+//                outRect: Rect,
+//                view: View,
+//                parent: RecyclerView,
+//                state: RecyclerView.State
+//            ) {
+//                outRect.right = currentVisibleItemPx
+//                outRect.left = currentVisibleItemPx
+//            }
+//        })
+
+//        fun Int.dpToPx(displayMetrics: DisplayMetrics): Int = (this * displayMetrics.density).toInt()
 //
 //        // 좌/우 노출되는 크기를 크게하려면 offsetPx 증가
 //        val offsetPx = 15.dpToPx(resources.displayMetrics)
-//        viewpager2.setPadding(offsetPx, offsetPx, offsetPx, offsetPx)
+//        horizontalViewPager2?.setPadding(offsetPx, offsetPx, offsetPx, offsetPx)
 //
 //        // 페이지간 마진 크게하려면 pageMarginPx 증가
 //        val pageMarginPx = 7.dpToPx(resources.displayMetrics)
 //        val marginTransformer = MarginPageTransformer(pageMarginPx)
-//        viewpager2.setPageTransformer(marginTransformer)
-//        linearLayout.addView(frameLayout)
-        //fun Int.dpToPx(displayMetrics: DisplayMetrics): Int = (this * displayMetrics.density).toInt()
+//        horizontalViewPager2?.setPageTransformer(marginTransformer)
 
 
-//        val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
-//        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+        val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
 
 //        val horizontalScrollView =
 //            frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
@@ -718,9 +726,8 @@ class ChatFragment : Fragment() {
                 url.getMetadataFromUrl()
                 val slideOGLayout =
                     frameLayout?.findViewById<LinearLayout>(R.id.slide_chat_message_layout)
-                if (slideOGLayout != null) {
+                if (slideOGLayout != null && url.metadata.imageUrl != "") {
                     showOpenGraphView(url.metadata, slideOGLayout, BOT)
-                    Log.d("tag1", "showog")
                 }
             }
         }
@@ -896,7 +903,9 @@ class ChatFragment : Fragment() {
                 val url = UrlData()
                 if (url.extractUrlFromText(Element.text)) {
                     url.getMetadataFromUrl()
-                    changeOpenGraphView(url.metadata, linearLayout, BOT)
+                    if (url.metadata.imageUrl != "") {
+                        changeOpenGraphView(url.metadata, linearLayout, BOT)
+                    }
                 }
             }
             changeButtonView(Element.buttons, linearLayout)
@@ -985,7 +994,8 @@ class ChatFragment : Fragment() {
             val textArea = linearLayout.findViewById<TextView>(R.id.chat_open_graph_message)
             textArea?.text = metadata.title
             textArea?.maxWidth = (screenWidth * 0.8).toInt()
-
+            val linkArea = linearLayout.findViewById<TextView>(R.id.chat_open_graph_link)
+            linkArea?.text = "\n여기를 눌러 링크를 확인하세요."
             //레이아웃 클릭시 앱브라우저로 url 실행
             linearLayout.findViewById<LinearLayout>(R.id.chat_open_graph_layout)
                 .setOnClickListener {
