@@ -13,7 +13,7 @@
         android:background="@drawable/answer_button"
         android:textColor="@color/text"
         android:text="Buttons"
-        app:backgroundTint="@color/sendButton"
+        app:backgroundTint="@color/button"
         tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

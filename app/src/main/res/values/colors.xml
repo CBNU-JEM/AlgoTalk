@@ -24,5 +24,6 @@
     <color name="sendText">#CCCCFF</color>
     <color name="text">#000000</color>
     <color name="text_gray">#808080</color>
-
+    <color name="light_gray">#505050</color>
+    <color name="button">#D3A5F8</color>
 </resources>
