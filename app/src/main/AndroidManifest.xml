@@ -5,10 +5,6 @@
     <!--    권한 설정   -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/algotalk_launcher"
@@ -17,9 +13,6 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.AlgoTalk">
-        <meta-data
-            android:name="com.kakao.sdk.AppKey"
-            android:value="6ff220c198224d6d3c5b9ed2f163cc32" />
         <activity
             android:name=".SplashActivity"
             android:theme="@style/IntroTheme">
