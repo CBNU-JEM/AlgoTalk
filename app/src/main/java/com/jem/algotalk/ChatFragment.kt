@@ -254,7 +254,6 @@ class ChatFragment : Fragment() {
                                 showTextView(botResponse.text, BOT, date.toString(), view)
                             if (botResponse.buttons != null && textFrame != null) {
                                 showButtonView(botResponse.buttons, BOT, view, textFrame)
-
                             }
                         }
                         if (botResponse.image != null) {
@@ -265,6 +264,8 @@ class ChatFragment : Fragment() {
                         if (botResponse.custom != null) {
                             showSlideAreaView(botResponse.custom.list, BOT, date.toString(), view)
                         }
+
+                        editText.requestFocus()
                     }
                 }
 
@@ -338,9 +339,6 @@ class ChatFragment : Fragment() {
         val screenWidth = metrics.widthPixels
 
         messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
-
-        frameLayout?.requestFocus()
-        editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
@@ -358,9 +356,9 @@ class ChatFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
         //open graph
-        val url = UrlData()
-        if (url.extractUrlFromText(message)) {
-            CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.Main).launch {
+            val url = UrlData()
+            if (url.extractUrlFromText(message)) {
                 //url 확인 후 크롤링을 통해 메타데이터 구분
                 url.getMetadataFromUrl()
                 val messageLayout =
@@ -369,6 +367,7 @@ class ChatFragment : Fragment() {
                     showOpenGraphView(url.metadata, messageLayout, BOT)
                 }
             }
+            editText.requestFocus()
         }
         //time
         val currentDateTime = Date(System.currentTimeMillis())
@@ -393,6 +392,9 @@ class ChatFragment : Fragment() {
         val timeTextView = frameLayout?.findViewById<TextView>(R.id.message_time)
 
         timeTextView?.text = time
+
+        frameLayout?.requestFocus()
+        editText.requestFocus()
         return frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
     }
 
@@ -485,7 +487,7 @@ class ChatFragment : Fragment() {
                 getBotLayout("button")
             }
         }
-//        frameLayout?.isFocusableInTouchMode = true
+        frameLayout?.isFocusableInTouchMode = true
         textFrame?.addView(frameLayout, 1)
         frameLayout?.requestFocus()
         editText.requestFocus()
@@ -542,6 +544,7 @@ class ChatFragment : Fragment() {
                 .into(messageOpenGraphView!!)
 
         }
+        frameLayout?.isFocusableInTouchMode = true
         frameLayout?.requestFocus()
         editText.requestFocus()
         //타이틀+설명 출력
@@ -584,18 +587,10 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-//        frameLayout?.isFocusableInTouchMode = true
-        val slideLayout: LinearLayout? = when (type) {
-            USER -> {
-                getUserLayout()
-            }
-            BOT -> {
-                getBotLayout("slide")
-            }
-            else -> {
-                getBotLayout()
-            }
-        }?.findViewById(R.id.slide_chat_linear_layout)
+        frameLayout?.isFocusableInTouchMode = true
+        frameLayout?.requestFocus()
+        editText.requestFocus()
+
         linearLayout.addView(frameLayout)
         val horizontalViewPager2 = frameLayout?.findViewById<ViewPager2>(R.id.viewPager)
         val adapter = HorizontalViewPagerAdapter(elements, date)
@@ -606,12 +601,13 @@ class ChatFragment : Fragment() {
             val wormDotsIndicator =
                 frameLayout?.findViewById<WormDotsIndicator>(R.id.worm_dots_indicator)
             wormDotsIndicator?.visibility = INVISIBLE
-        }
-        if(horizontalViewPager2 != null && elements.size > 1){
+        } else if (horizontalViewPager2 != null && elements.size > 1) {
             val wormDotsIndicator =
                 frameLayout?.findViewById<WormDotsIndicator>(R.id.worm_dots_indicator)
             wormDotsIndicator.setViewPager2(horizontalViewPager2)
         }
+        val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
+        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
         //양옆의 페이지 노출
 //        val metrics = resources.displayMetrics
 //        val px: Float =
@@ -648,11 +644,18 @@ class ChatFragment : Fragment() {
 //        val pageMarginPx = 7.dpToPx(resources.displayMetrics)
 //        val marginTransformer = MarginPageTransformer(pageMarginPx)
 //        horizontalViewPager2?.setPageTransformer(marginTransformer)
-
-
-        val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
-        chattingScrollView.post { chattingScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
-
+//
+//        val slideLayout: LinearLayout? = when (type) {
+//            USER -> {
+//                getUserLayout()
+//            }
+//            BOT -> {
+//                getBotLayout("slide")
+//            }
+//            else -> {
+//                getBotLayout()
+//            }
+//        }?.findViewById(R.id.slide_chat_linear_layout)
 //        val horizontalScrollView =
 //            frameLayout?.findViewById<HorizontalScrollView>(R.id.chatScrollView)
 //        horizontalScrollView?.post { horizontalScrollView.fullScroll(ScrollView.FOCUS_LEFT) }
@@ -686,7 +689,6 @@ class ChatFragment : Fragment() {
                 getBotLayout()
             }
         }
-//        frameLayout?.isFocusableInTouchMode = true
         slideLayout.addView(frameLayout)
 
         val messageTextView = frameLayout?.findViewById<TextView>(R.id.chat_message)
@@ -698,8 +700,6 @@ class ChatFragment : Fragment() {
 
         messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
 
-        frameLayout?.requestFocus()
-        editText.requestFocus()
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
@@ -717,6 +717,9 @@ class ChatFragment : Fragment() {
                 dbHelper.deleteBookmark(bookmark)
         }
 
+        frameLayout?.isFocusableInTouchMode = true
+        frameLayout?.requestFocus()
+        editText.requestFocus()
 
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -730,6 +733,7 @@ class ChatFragment : Fragment() {
                     showOpenGraphView(url.metadata, slideOGLayout, BOT)
                 }
             }
+            editText.requestFocus()
         }
 
 
@@ -793,7 +797,7 @@ class ChatFragment : Fragment() {
 //            }
 //        }
 //        slideMessageFrameLayout?.findViewById<LinearLayout>(R.id.slide_chat_layout)?.addView(frameLayout)
-//        frameLayout?.isFocusableInTouchMode = true
+        frameLayout?.isFocusableInTouchMode = true
 //        slideLayout.addView(frameLayout)
         frameLayout?.requestFocus()
         editText.requestFocus()
@@ -898,6 +902,7 @@ class ChatFragment : Fragment() {
                     dbHelper.deleteBookmark(bookmark)
             }
 
+//            editText.requestFocus()
             CoroutineScope(Dispatchers.Main).launch {
                 //open graph
                 val url = UrlData()
@@ -907,9 +912,9 @@ class ChatFragment : Fragment() {
                         changeOpenGraphView(url.metadata, linearLayout, BOT)
                     }
                 }
+                editText.requestFocus()
             }
             changeButtonView(Element.buttons, linearLayout)
-            editText.requestFocus()
         }
 
         private fun changeButtonView(
@@ -932,8 +937,6 @@ class ChatFragment : Fragment() {
                 val linearLayout =
                     textFrame?.findViewById<LinearLayout>(R.id.slide_chat_message_layout)
                 linearLayout?.addView(frameLayout, 1)
-                frameLayout?.requestFocus()
-                editText.requestFocus()
                 val buttonRecyclerView = ButtonRecyclerView(buttons)
 
                 val metrics = resources.displayMetrics
@@ -955,6 +958,8 @@ class ChatFragment : Fragment() {
                 //layoutManager.orientation = LinearLayoutManager.HORIZONTAL
                 recyclerView?.layoutManager = layoutManager
                 recyclerView?.adapter = buttonRecyclerView
+                frameLayout?.requestFocus()
+                editText.requestFocus()
             }
         }
 
@@ -1003,6 +1008,9 @@ class ChatFragment : Fragment() {
                     i.data = Uri.parse(metadata.url)
                     startActivity(i)
                 }
+
+//            frameLayout?.isFocusableInTouchMode = true
+            frameLayout?.requestFocus()
             editText.requestFocus()
         }
 
