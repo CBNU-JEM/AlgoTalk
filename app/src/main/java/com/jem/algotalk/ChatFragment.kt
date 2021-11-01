@@ -3,12 +3,10 @@ package com.jem.algotalk
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.DisplayMetrics
 import android.util.Log
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -21,7 +19,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayoutManager
@@ -64,6 +61,7 @@ class ChatFragment : Fragment() {
 
     private lateinit var editUserName: EditText
     private lateinit var spinner_level: Spinner
+    private lateinit var userLevel: String
 
     var endTime1 = System.currentTimeMillis()
     var startTime1 = System.currentTimeMillis()
@@ -79,7 +77,6 @@ class ChatFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_chat, container, false)
         val chattingScrollView = view.findViewById<NestedScrollView>(R.id.chatScrollView)
         activity = context as Activity
-
         this.inflater = inflater
         if (container != null) {
             this.container = container
@@ -164,6 +161,11 @@ class ChatFragment : Fragment() {
                 dbHelper.updateUserLevel(old_user, new_user)
                 Toast.makeText(getActivity(), "변경 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 mAlertDialog.dismiss()
+
+                //바꿀때마다 유저레벨 슬롯 설정
+                userLevel = dbHelper.readUser(view).level
+                val userLevelMessage = "user_level = $userLevel"
+                sendMessage(view, userLevelMessage, "")
             }
 
             val noButton = mDialogView.findViewById<Button>(R.id.close_popup_Button)
@@ -173,6 +175,10 @@ class ChatFragment : Fragment() {
 
         }
 
+        //처음켰을때 유저레벨 슬롯 설정
+        userLevel = dbHelper.readUser(view).level
+        val userLevelMessage = "user_level = $userLevel"
+        sendMessage(view, userLevelMessage, "")
 
         return view
     }
@@ -189,8 +195,7 @@ class ChatFragment : Fragment() {
             context!!.contentResolver,
             Settings.Secure.ANDROID_ID
         )
-        sender_id += dbHelper.readUser(view).level
-        Log.i("sender_id", sender_id.toString())
+        sender_id
         startTime1 = System.currentTimeMillis()
 //        val startTime= System.currentTimeMillis()
 //        Log.i("server response start",  startTime.toString())
@@ -210,7 +215,9 @@ class ChatFragment : Fragment() {
             Log.e("Msg", sender_id + " msssage: $message " + dbHelper.readUser(view).level)
             editText.setText("")
             userMessage.UserMessage(sender_id, message, user_info.level.toInt())
-            if (printMessage.isNotEmpty())
+            if (printMessage == "") {
+
+            } else if (printMessage.isNotEmpty())
                 showTextView(printMessage, USER, date.toString(), view)
             else
                 showTextView(message, USER, date.toString(), view)
@@ -225,8 +232,6 @@ class ChatFragment : Fragment() {
                     user_info.LevalMapping(),
                     dbHelper.readUser(view).level.toInt()
                 )
-
-
                 Log.e("userMessage change", "msssage: ${userMessage.message} ")
             }
         }
@@ -249,7 +254,7 @@ class ChatFragment : Fragment() {
                     showTextView(botMessage, BOT, date.toString(), view)
                 } else {
                     response.body()!!.forEach { botResponse ->
-                        if (botResponse.text != null) {
+                        if (botResponse.text != null && botResponse.text != "set user_level : success") {
                             val textFrame =
                                 showTextView(botResponse.text, BOT, date.toString(), view)
                             if (botResponse.buttons != null && textFrame != null) {
