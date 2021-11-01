@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 체크박스 해제 -->
+    <item android:drawable="@drawable/unselected_star"
+        android:state_checked="false" />
+
+    <!-- 체크박스 선택 -->
+    <item android:drawable="@drawable/selected_star"
+        android:state_checked="true" />
+
+    <!-- 체크박스 기본 -->
+    <item android:drawable="@drawable/unselected_star" />
+</selector>

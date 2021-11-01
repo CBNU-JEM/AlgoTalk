@@ -1,6 +1,5 @@
 package com.jem.algotalk
 
-import android.os.Bundle
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -9,7 +8,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class UrlData {
-    private lateinit var url: String
+    private var url: String = ""
     private var flag: Boolean = false
     val metadata = Metadata()
     fun extractUrlFromText(text: String): Boolean {

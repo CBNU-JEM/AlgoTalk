@@ -147,8 +147,8 @@ class BookmarkFragment : Fragment() {
                 url.getMetadataFromUrl()
                 Log.i("sangeun", "오픈그래프 " + url.metadata.title)
                 val messageLayout = frameLayout?.findViewById<LinearLayout>(R.id.chat_message_layout)
-                if (messageLayout != null) {
-                    showOpenGraphView(url.metadata, messageLayout, date.toString(), view)
+                if (messageLayout != null && url.metadata.imageUrl!="") {
+                    showOpenGraphView(url.metadata, messageLayout, date, view)
                 }
             }
             Log.i("sangeun", "오픈그래프 끝")
