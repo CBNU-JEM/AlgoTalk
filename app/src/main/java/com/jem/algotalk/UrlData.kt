@@ -8,7 +8,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class UrlData {
-    private lateinit var url: String
+    private var url: String = ""
     private var flag: Boolean = false
     val metadata = Metadata()
     fun extractUrlFromText(text: String): Boolean {
