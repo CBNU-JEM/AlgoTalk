@@ -21,7 +21,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.google.android.flexbox.AlignContent
+import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.JustifyContent
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
@@ -48,6 +51,7 @@ class ChatFragment : Fragment() {
     companion object {
         private const val USER = 0
         const val BOT = 1
+        const val PHONEWIDTH = 0.75
     }
 
     //private lateinit var viewPagerAdapter: ViewPagerAdapter
@@ -310,7 +314,7 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
 
         frameLayout?.requestFocus()
         editText.requestFocus()
@@ -343,7 +347,7 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
         val bookmarkbutton = frameLayout?.findViewById<CheckBox>(R.id.star_button)
@@ -499,7 +503,7 @@ class ChatFragment : Fragment() {
         val buttonRecyclerView = ButtonRecyclerView(buttons)
 
         val metrics = resources.displayMetrics
-        val maxWidth = (metrics.widthPixels * 0.8).toInt()
+        val maxWidth = (metrics.widthPixels * PHONEWIDTH).toInt()
 
         val buttonWidth = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
@@ -559,7 +563,7 @@ class ChatFragment : Fragment() {
         val metrics = resources.displayMetrics
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
         val linkExplainView = frameLayout?.findViewById<TextView>(R.id.chat_open_graph_link)
         linkExplainView?.text = "\n여기를 눌러 링크를 확인하세요."
 
@@ -703,7 +707,7 @@ class ChatFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
 
         dbHelper = FeedReaderDbHelper(requireContext())
         //book mark
@@ -806,12 +810,27 @@ class ChatFragment : Fragment() {
 //        slideLayout.addView(frameLayout)
         frameLayout?.requestFocus()
         editText.requestFocus()
+
         val buttonRecyclerView = ButtonRecyclerView(buttons)
+        val metrics = resources.displayMetrics
+        val maxWidth = (metrics.widthPixels * PHONEWIDTH).toInt()
+
+        val buttonWidth = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            95f,
+            resources.displayMetrics
+        ).toInt()
+
+        if (buttonRecyclerView.itemCount >= maxWidth / buttonWidth) {
+            frameLayout?.layoutParams!!.width = maxWidth
+        }
         val layoutManager: FlexboxLayoutManager? = FlexboxLayoutManager(activity)
         val recyclerView = frameLayout?.findViewById<RecyclerView>(R.id.button_list)
+
 //        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         recyclerView?.layoutManager = layoutManager
         recyclerView?.adapter = buttonRecyclerView
+
     }
 
     inner class ButtonRecyclerView(private var buttons: List<BotResponse.Button>) :
@@ -858,6 +877,7 @@ class ChatFragment : Fragment() {
 
         override fun onBindViewHolder(holder: PagerViewHolder, position: Int) {
             val it = layoutList[position]
+            Log.e("onBindViewHolder"," ")
             changeSlideView(it, holder.linearLayout)
         }
 
@@ -888,7 +908,7 @@ class ChatFragment : Fragment() {
 
             val metrics = resources.displayMetrics
             val screenWidth = metrics.widthPixels
-            messageTextView?.maxWidth = (screenWidth * 0.8).toInt()
+            messageTextView?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
 
             dbHelper = FeedReaderDbHelper(requireContext())
             //book mark
@@ -945,7 +965,7 @@ class ChatFragment : Fragment() {
                 val buttonRecyclerView = ButtonRecyclerView(buttons)
 
                 val metrics = resources.displayMetrics
-                val maxWidth = (metrics.widthPixels * 0.8).toInt()
+                val maxWidth = (metrics.widthPixels * PHONEWIDTH).toInt()
 
                 val buttonWidth = TypedValue.applyDimension(
                     TypedValue.COMPLEX_UNIT_DIP,
@@ -1003,7 +1023,7 @@ class ChatFragment : Fragment() {
             //타이틀+설명 변환
             val textArea = linearLayout.findViewById<TextView>(R.id.chat_open_graph_message)
             textArea?.text = metadata.title
-            textArea?.maxWidth = (screenWidth * 0.8).toInt()
+            textArea?.maxWidth = (screenWidth * PHONEWIDTH).toInt()
             val linkArea = linearLayout.findViewById<TextView>(R.id.chat_open_graph_link)
             linkArea?.text = "\n여기를 눌러 링크를 확인하세요."
             //레이아웃 클릭시 앱브라우저로 url 실행
