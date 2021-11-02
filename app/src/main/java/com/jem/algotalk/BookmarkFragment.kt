@@ -34,8 +34,11 @@ class BookmarkFragment : Fragment() {
     private lateinit var container: ViewGroup
     private lateinit var inflater: LayoutInflater
     private lateinit var activity: Activity
-
-
+    companion object {
+        private const val USER = 0
+        const val BOT = 1
+        const val PHONEWIDTH = 0.75
+    }
     //디비헬퍼, 디비 선언
     private lateinit var dbHelper : FeedReaderDbHelper
 
@@ -119,7 +122,7 @@ class BookmarkFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth*PHONEWIDTH).toInt()
 
         frameLayout?.requestFocus()
         //editText.requestFocus()
@@ -247,7 +250,7 @@ class BookmarkFragment : Fragment() {
         val screenHeight = metrics.heightPixels
         val screenWidth = metrics.widthPixels
 
-        messageTextView?.maxWidth = (screenWidth*0.8).toInt()
+        messageTextView?.maxWidth = (screenWidth*PHONEWIDTH).toInt()
 
         //레이아웃 클릭시 앱브라우저로 url 실행
         frameLayout?.findViewById<LinearLayout>(R.id.chat_open_graph_layout)?.setOnClickListener {
